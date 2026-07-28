@@ -1,4 +1,4 @@
-# Torneos de combate
+# sass-combate
 
 Plataforma SaaS multi-tenant para gestionar torneos de deportes de contacto:
 eventos, emparejamiento, pesaje, mesa de control offline, pagos y documentos

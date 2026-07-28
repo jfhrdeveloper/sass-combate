@@ -1,4 +1,4 @@
-# 🏗️ Torneos de combate — Arquitectura
+# 🏗️ sass-combate — Arquitectura
 
 > Fuente única de verdad sobre cómo está construido el sistema y por qué.
 > El estilo visual y las convenciones de código viven en `docs/style-guide.md`.

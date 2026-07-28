@@ -27,7 +27,7 @@ class BaseLocal extends Dexie {
   cache!: Table<Cache, string>;
 
   constructor() {
-    super("torneos");
+    super("sass-combate");
     this.version(1).stores({
       operaciones: "++id, clave, estado, eventoId, creadaEn",
       cache: "clave",
