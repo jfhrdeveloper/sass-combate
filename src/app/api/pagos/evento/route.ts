@@ -43,7 +43,11 @@ export async function POST(req: NextRequest) {
 
   // RLS (`evento_escritura`) ya exige dueño/admin/mesa de la organización dueña
   // de este evento — si no matchea, el update de más abajo no afecta filas.
-  const { data: evento } = await supabase.from("evento").select("id").eq("id", eventoId).maybeSingle();
+  const { data: evento } = await supabase
+    .from("evento")
+    .select("id, organizacion_id")
+    .eq("id", eventoId)
+    .maybeSingle();
   if (!evento) return NextResponse.json({ error: "evento no encontrado" }, { status: 404 });
 
   let cargo;
@@ -75,6 +79,17 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+
+  // No debe tumbar la respuesta: el evento ya quedó desbloqueado aunque esta fila falle.
+  await supabase.from("compra_plan").insert({
+    organizacion_id: evento.organizacion_id,
+    evento_id: eventoId,
+    tipo: "evento",
+    monto: PRECIO_EVENTO_SOLES,
+    cargo_id: cargo.id,
+    vence_en: venceEn,
+    creado_por: user.id,
+  });
 
   return NextResponse.json({ ok: true, cargoId: cargo.id, venceEn });
 }

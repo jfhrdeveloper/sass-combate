@@ -1,15 +1,15 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Insignia } from "@/components/ui/badge";
 import { estilos } from "@/components/ui/button";
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
 import {
-  AREAS_DEMO,
-  BLOQUES_DEMO,
-  EVENTO_DEMO,
-  INSCRIPCIONES_DEMO,
-  PELEAS_DEMO,
-  inscripcionPorId,
-} from "@/lib/datos";
+  obtenerAreas,
+  obtenerBloques,
+  obtenerEvento,
+  obtenerInscripciones,
+  obtenerPeleas,
+} from "@/lib/consultas";
 import { construirAgenda, formatearRetraso } from "@/lib/horarios";
 import { hora, kg } from "@/lib/format";
 import { exigirAcademia } from "@/lib/auth";
@@ -23,10 +23,20 @@ export default async function PaginaEvento({
 }) {
   const { id } = await params;
   const { academia, sesion } = await exigirAcademia();
-  const agendas = construirAgenda(AREAS_DEMO, PELEAS_DEMO, BLOQUES_DEMO);
-  const totalPeleas = PELEAS_DEMO.length;
-  const finalizadas = PELEAS_DEMO.filter((p) => p.estado === "finalizada").length;
-  const peorRetraso = Math.max(...agendas.map((a) => a.retrasoSeg));
+  const [evento, areas, peleas, bloques, inscripciones] = await Promise.all([
+    obtenerEvento(id),
+    obtenerAreas(id),
+    obtenerPeleas(id),
+    obtenerBloques(id),
+    obtenerInscripciones(id),
+  ]);
+  if (!evento) notFound();
+
+  const inscripcionPorId = new Map(inscripciones.map((i) => [i.id, i]));
+  const agendas = construirAgenda(areas, peleas, bloques);
+  const totalPeleas = peleas.length;
+  const finalizadas = peleas.filter((p) => p.estado === "finalizada").length;
+  const peorRetraso = agendas.length ? Math.max(...agendas.map((a) => a.retrasoSeg)) : 0;
   const cubiertoPorAcademia = planEstaActivo(academia.plan, academia.plan_vence_en);
 
   return (
@@ -34,8 +44,8 @@ export default async function PaginaEvento({
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-sm text-slate-500">Evento {id}</p>
-          <h1 className="text-2xl font-semibold">{EVENTO_DEMO.nombre}</h1>
-          <p className="text-sm text-slate-600">{EVENTO_DEMO.sede}</p>
+          <h1 className="text-2xl font-semibold">{evento.nombre}</h1>
+          <p className="text-sm text-slate-600">{evento.sede}</p>
         </div>
         <div className="flex gap-2">
           <Link href={`/app/eventos/${id}/emparejar`} className={estilos({ tamano: "md" })}>
@@ -75,7 +85,7 @@ export default async function PaginaEvento({
       <section className="mt-6 grid gap-3 sm:grid-cols-4">
         <Tarjeta>
           <TarjetaTitulo>Inscritos</TarjetaTitulo>
-          <TarjetaDato>{INSCRIPCIONES_DEMO.length}</TarjetaDato>
+          <TarjetaDato>{inscripciones.length}</TarjetaDato>
         </Tarjeta>
         <Tarjeta>
           <TarjetaTitulo>Peleas</TarjetaTitulo>
@@ -96,16 +106,12 @@ export default async function PaginaEvento({
         </Tarjeta>
       </section>
 
-      {/* EVENTO_DEMO.plan_vence_en, no obtenerEvento(id): esta página ya
-          ignora HAY_SUPABASE en todo lo demás (usa *_DEMO fijo, ver
-          docs/pending-task.md) — cuando eso se corrija, acá también hay que
-          leer el evento real. */}
       <div className="mt-4 max-w-md">
         <DesbloquearEvento
           eventoId={id}
           email={sesion.email}
           cubiertoPorAcademia={cubiertoPorAcademia}
-          venceEn={EVENTO_DEMO.plan_vence_en}
+          venceEn={evento.plan_vence_en}
         />
       </div>
 
@@ -143,9 +149,9 @@ export default async function PaginaEvento({
                       </tr>
                     );
                   }
-                  const p = PELEAS_DEMO.find((x) => x.id === f.id)!;
-                  const roja = inscripcionPorId(p.roja_id);
-                  const azul = inscripcionPorId(p.azul_id);
+                  const p = peleas.find((x) => x.id === f.id)!;
+                  const roja = p.roja_id ? inscripcionPorId.get(p.roja_id) : undefined;
+                  const azul = p.azul_id ? inscripcionPorId.get(p.azul_id) : undefined;
                   return (
                     <tr key={f.id} className="border-t border-borde">
                       <td className="px-3 py-2 font-display tabular-nums">

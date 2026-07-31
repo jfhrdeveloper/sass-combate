@@ -148,3 +148,54 @@ export async function recalcularHorarios(eventoId: string): Promise<void> {
   const supabase = await crearClienteServidor();
   await supabase.rpc("recalcular_horarios", { p_evento_id: eventoId });
 }
+
+/** Solo las inscripciones del club que entrena quien llama (ver `v_mi_club`). */
+export async function obtenerInscripcionesClub(eventoId: string): Promise<Inscripcion[]> {
+  if (!HAY_SUPABASE) return INSCRIPCIONES_DEMO;
+
+  const supabase = await crearClienteServidor();
+  const { data: club } = await supabase.from("v_mi_club").select("id").limit(1).maybeSingle();
+  if (!club) return [];
+
+  const todas = await obtenerInscripciones(eventoId);
+  return todas.filter((i) => i.club_id === club.id);
+}
+
+/**
+ * Precio vigente de una inscripción según `precio_inscripcion()` (normal o
+ * extemporáneo, según `evento.cierre_inscripcion`) — la lógica vive una sola
+ * vez en SQL, no se duplica acá.
+ */
+export async function obtenerPrecioInscripcion(eventoId: string): Promise<number> {
+  if (!HAY_SUPABASE) return 50;
+
+  const supabase = await crearClienteServidor();
+  const { data } = await supabase.rpc("precio_inscripcion", { p_evento_id: eventoId });
+  return typeof data === "number" ? data : 0;
+}
+
+export interface CompraPlan {
+  id: string;
+  tipo: "academia_mes" | "academia_anio" | "evento";
+  monto: number;
+  vence_en: string;
+  creado_en: string;
+  evento_nombre: string | null;
+}
+
+export async function listarHistorialPlanes(): Promise<CompraPlan[]> {
+  if (!HAY_SUPABASE) return [];
+
+  const supabase = await crearClienteServidor();
+  const { data } = await supabase
+    .from("compra_plan")
+    .select("id, tipo, monto, vence_en, creado_en, evento:evento_id (nombre)")
+    .order("creado_en", { ascending: false });
+
+  type Fila = Omit<CompraPlan, "evento_nombre"> & { evento: { nombre: string } | null };
+
+  return ((data ?? []) as unknown as Fila[]).map((f) => ({
+    ...f,
+    evento_nombre: f.evento?.nombre ?? null,
+  }));
+}

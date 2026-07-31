@@ -1,10 +1,9 @@
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
 import { Paginador } from "@/components/ui/paginador";
 import { exigirAcademia } from "@/lib/auth";
-import { listarEventos } from "@/lib/consultas";
+import { listarEventos, obtenerInscripcionesClub, obtenerPrecioInscripcion } from "@/lib/consultas";
 import { CargarLista } from "./cargar";
 import { SubirComprobante } from "./comprobante";
-import { INSCRIPCIONES_DEMO } from "@/lib/datos";
 import { paginar } from "@/lib/paginacion";
 import { kg } from "@/lib/format";
 
@@ -17,7 +16,9 @@ export default async function PaginaMiClub({
   const { academia, sesion } = await exigirAcademia();
   const eventos = await listarEventos(academia.id);
   const activo = eventos.find((e) => e.estado !== "finalizado") ?? eventos[0];
-  const mios = INSCRIPCIONES_DEMO;
+  const mios = activo ? await obtenerInscripcionesClub(activo.id) : [];
+  const precio = activo ? await obtenerPrecioInscripcion(activo.id) : 0;
+  const pendientesDePago = mios.filter((i) => i.estado === "pendiente");
   const { items: visibles, pagina, totalPaginas } = paginar(mios, Number(page) || 1);
 
   return (
@@ -35,11 +36,11 @@ export default async function PaginaMiClub({
         </Tarjeta>
         <Tarjeta>
           <TarjetaTitulo>Pagados</TarjetaTitulo>
-          <TarjetaDato>0</TarjetaDato>
+          <TarjetaDato>{mios.length - pendientesDePago.length}</TarjetaDato>
         </Tarjeta>
         <Tarjeta>
           <TarjetaTitulo>Por pagar</TarjetaTitulo>
-          <TarjetaDato>S/ {(mios.length * 50).toFixed(2)}</TarjetaDato>
+          <TarjetaDato>S/ {(pendientesDePago.length * precio).toFixed(2)}</TarjetaDato>
         </Tarjeta>
       </section>
 
@@ -56,9 +57,15 @@ export default async function PaginaMiClub({
                 {i.edad ?? "sin edad"} años · {kg(i.peso_pesaje)} · {i.nivel}
               </span>
             </span>
-            <span className="rounded-md bg-aviso-suave px-2 py-1 font-display text-xs font-semibold uppercase tracking-wide text-aviso-fuerte">
-              por pagar
-            </span>
+            {i.estado === "pendiente" ? (
+              <span className="rounded-md bg-aviso-suave px-2 py-1 font-display text-xs font-semibold uppercase tracking-wide text-aviso-fuerte">
+                por pagar
+              </span>
+            ) : (
+              <span className="rounded-md bg-exito-suave px-2 py-1 font-display text-xs font-semibold uppercase tracking-wide text-exito-fuerte">
+                pagado
+              </span>
+            )}
           </li>
         ))}
       </ul>
@@ -70,8 +77,12 @@ export default async function PaginaMiClub({
       />
 
       {activo && <CargarLista eventoId={activo.id} />}
-      {activo && (
-        <SubirComprobante eventoId={activo.id} monto={mios.length * 50} email={sesion.email} />
+      {activo && pendientesDePago.length > 0 && (
+        <SubirComprobante
+          eventoId={activo.id}
+          monto={pendientesDePago.length * precio}
+          email={sesion.email}
+        />
       )}
     </main>
   );

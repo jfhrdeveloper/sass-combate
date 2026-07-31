@@ -1,11 +1,19 @@
 import { exigirAcademia } from "@/lib/auth";
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
 import { fechaLarga } from "@/lib/format";
+import { listarHistorialPlanes } from "@/lib/consultas";
 import { SelectorPlan } from "./selector-plan";
+
+const NOMBRE_TIPO = {
+  academia_mes: "Academia · mensual",
+  academia_anio: "Academia · anual",
+  evento: "Desbloqueo de evento",
+} as const;
 
 export default async function PaginaPlan() {
   const { academia, sesion } = await exigirAcademia();
   const vencido = academia.plan_vence_en ? new Date(academia.plan_vence_en) < new Date() : false;
+  const historial = await listarHistorialPlanes();
 
   return (
     <main className="mx-auto max-w-3xl p-6">
@@ -35,6 +43,35 @@ export default async function PaginaPlan() {
       <div className="mt-3">
         <SelectorPlan email={sesion.email} />
       </div>
+
+      <h2 className="mt-8 text-lg font-medium">Historial de compras</h2>
+      {historial.length === 0 ? (
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+          Todavía no hay compras registradas.
+        </p>
+      ) : (
+        <ul className="mt-3 grid gap-2">
+          {historial.map((c) => (
+            <li
+              key={c.id}
+              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-borde bg-panel px-4 py-3"
+            >
+              <span>
+                <span className="font-medium">{NOMBRE_TIPO[c.tipo]}</span>
+                {c.evento_nombre && (
+                  <span className="block text-xs text-slate-500 dark:text-slate-400">
+                    {c.evento_nombre}
+                  </span>
+                )}
+                <span className="block text-xs text-slate-500 dark:text-slate-400">
+                  {fechaLarga(c.creado_en)} · vence {fechaLarga(c.vence_en)}
+                </span>
+              </span>
+              <span className="font-display tabular-nums">S/ {c.monto.toFixed(2)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </main>
   );
 }

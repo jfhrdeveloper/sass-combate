@@ -87,5 +87,15 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // No debe tumbar la respuesta: el plan ya quedó activo aunque esta fila falle.
+  await supabase.from("compra_plan").insert({
+    organizacion_id: academia.id,
+    tipo: plan,
+    monto: detalle.monto,
+    cargo_id: cargo.id,
+    vence_en: venceEn,
+    creado_por: user.id,
+  });
+
   return NextResponse.json({ ok: true, cargoId: cargo.id, venceEn });
 }
