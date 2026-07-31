@@ -16,6 +16,14 @@ export default async function LayoutAdmin({ children }: { children: React.ReactN
             Plataforma
           </Link>
           <span className="rounded-md bg-white/10 px-2 py-0.5 text-xs">staff</span>
+          <nav className="flex gap-4 text-sm">
+            <Link href="/admin" className="opacity-70 hover:opacity-100">
+              Academias
+            </Link>
+            <Link href="/admin/reclamos" className="opacity-70 hover:opacity-100">
+              Reclamos
+            </Link>
+          </nav>
           <div className="ml-auto flex items-center gap-3 text-sm">
             <span className="hidden opacity-70 sm:inline">{sesion.email}</span>
             <form action={salir}>

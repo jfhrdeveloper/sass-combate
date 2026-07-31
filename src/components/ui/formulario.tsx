@@ -17,7 +17,7 @@ export function Aviso({ error, ok }: { error?: string; ok?: string }) {
   return (
     <p
       className={`rounded-lg px-3 py-2 text-sm ${
-        error ? "bg-rose-50 text-rose-800" : "bg-emerald-50 text-emerald-800"
+        error ? "bg-error-suave text-error-fuerte" : "bg-exito-suave text-exito-fuerte"
       }`}
     >
       {error ?? ok}

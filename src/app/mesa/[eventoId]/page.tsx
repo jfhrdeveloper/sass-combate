@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from "react";
 import { Boton } from "@/components/ui/button";
 import { Insignia } from "@/components/ui/badge";
+import { TarjetaPelea } from "@/components/ui/tarjeta-pelea";
 import { BarraConexion, EstadoConexion } from "@/components/estado-conexion";
 import { useSincronizacion } from "@/lib/offline/sincronizacion";
 import { guardarCache, leerCache } from "@/lib/offline/db";
@@ -85,19 +86,14 @@ export default function MesaDeControl({
                 <Insignia estado={f.estado ?? "pendiente"} />
               </div>
 
-              <div className="mt-2 grid grid-cols-2 gap-3">
-                <div>
-                  <p className="font-medium text-roja">{roja?.nombre ?? "—"}</p>
-                  <p className="text-xs text-slate-500">
-                    {roja?.club} · {kg(roja?.peso_pesaje ?? null)}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-azul">{azul?.nombre ?? "—"}</p>
-                  <p className="text-xs text-slate-500">
-                    {azul?.club} · {kg(azul?.peso_pesaje ?? null)}
-                  </p>
-                </div>
+              <TarjetaPelea roja={roja?.nombre} azul={azul?.nombre} className="mt-2" />
+              <div className="mt-1 grid grid-cols-2 gap-2 text-xs text-slate-500">
+                <p className="text-right">
+                  {roja?.club} · {kg(roja?.peso_pesaje ?? null)}
+                </p>
+                <p>
+                  {azul?.club} · {kg(azul?.peso_pesaje ?? null)}
+                </p>
               </div>
 
               {!abierta ? (

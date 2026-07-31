@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { Campo } from "@/components/ui/input";
+import { Paginador } from "@/components/ui/paginador";
 import { buscarAtletas } from "@/lib/atletas";
 import { ETIQUETA_NIVEL, nivelPorPeleas } from "@/lib/nivel";
+import { paginar } from "@/lib/paginacion";
 
 export default async function PaginaAtletas({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; page?: string }>;
 }) {
-  const { q } = await searchParams;
-  const atletas = await buscarAtletas(q ?? "");
+  const { q, page } = await searchParams;
+  const todos = await buscarAtletas(q ?? "");
+  const { items: atletas, pagina, totalPaginas } = paginar(todos, Number(page) || 1);
 
   return (
     <main className="mx-auto max-w-3xl p-6">
@@ -47,7 +50,7 @@ export default async function PaginaAtletas({
                     {a.victorias}-{a.derrotas}
                     {a.empates ? `-${a.empates}` : ""}
                   </span>
-                  <span className="rounded-md bg-slate-100 px-2 py-1 text-xs">
+                  <span className="rounded-md bg-slate-100 px-2 py-1 text-xs dark:bg-white/10 dark:text-slate-300">
                     {ETIQUETA_NIVEL[sugerido]}
                   </span>
                 </span>
@@ -57,7 +60,7 @@ export default async function PaginaAtletas({
         })}
       </ul>
 
-      {atletas.length === 0 && (
+      {todos.length === 0 && (
         <div className="mt-10 rounded-xl border border-dashed border-borde p-8 text-center">
           <p className="font-medium">Sin resultados</p>
           <p className="mt-1 text-sm text-slate-500">
@@ -67,6 +70,12 @@ export default async function PaginaAtletas({
           </p>
         </div>
       )}
+
+      <Paginador
+        pagina={pagina}
+        totalPaginas={totalPaginas}
+        hrefPara={(p) => `/app/atletas?${new URLSearchParams({ ...(q ? { q } : {}), page: String(p) })}`}
+      />
 
       <p className="mt-8 text-xs text-slate-400">
         Ves el resumen de peleas de cualquier atleta, pero el detalle de cada

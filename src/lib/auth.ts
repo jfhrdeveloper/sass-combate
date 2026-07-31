@@ -1,6 +1,11 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { crearClienteServidor } from "./supabase/server";
 import { HAY_SUPABASE } from "./datos";
+import { ROLES, COOKIE_ROL_DEMO, CUENTAS_DEMO, type Rol, type CuentaDemo } from "./roles";
+
+export { ROLES, COOKIE_ROL_DEMO, CUENTAS_DEMO };
+export type { Rol, CuentaDemo };
 
 export interface ResumenAcademia {
   id: string;
@@ -19,7 +24,8 @@ export interface Academia {
   nombre: string;
   slug: string;
   plan: string;
-  rol: "dueno" | "admin" | "mesa" | "coach" | "juez" | "lector";
+  plan_vence_en: string | null;
+  rol: Rol;
 }
 
 export interface Sesion {
@@ -33,17 +39,23 @@ export const ACADEMIA_DEMO: Academia = {
   nombre: "Academia demo",
   slug: "demo",
   plan: "free",
+  plan_vence_en: null,
   rol: "dueno",
 };
 
 export const SESION_DEMO: Sesion = {
   usuarioId: "demo",
-  email: "demo@ejemplo.com",
-  nombre: "Modo demo",
+  email: CUENTAS_DEMO[0].email,
+  nombre: CUENTAS_DEMO[0].nombre,
 };
 
 export async function sesionActual(): Promise<Sesion | null> {
-  if (!HAY_SUPABASE) return SESION_DEMO;
+  if (!HAY_SUPABASE) {
+    const jar = await cookies();
+    const rol = jar.get(COOKIE_ROL_DEMO)?.value;
+    const cuenta = CUENTAS_DEMO.find((c) => c.rol === rol) ?? CUENTAS_DEMO[0];
+    return { usuarioId: "demo", email: cuenta.email, nombre: cuenta.nombre };
+  }
   const supabase = await crearClienteServidor();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return null;
@@ -58,7 +70,12 @@ export async function sesionActual(): Promise<Sesion | null> {
 }
 
 export async function misAcademias(): Promise<Academia[]> {
-  if (!HAY_SUPABASE) return [ACADEMIA_DEMO];
+  if (!HAY_SUPABASE) {
+    const jar = await cookies();
+    const rolGuardado = jar.get(COOKIE_ROL_DEMO)?.value as Academia["rol"] | undefined;
+    const rol = rolGuardado && ROLES.includes(rolGuardado) ? rolGuardado : ACADEMIA_DEMO.rol;
+    return [{ ...ACADEMIA_DEMO, rol }];
+  }
   const supabase = await crearClienteServidor();
   const { data } = await supabase.from("v_mis_academias").select("*");
   return (data ?? []) as Academia[];

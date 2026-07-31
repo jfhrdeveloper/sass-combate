@@ -1,21 +1,30 @@
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
+import { Paginador } from "@/components/ui/paginador";
 import { exigirAcademia } from "@/lib/auth";
 import { listarPagos } from "@/lib/pagos";
+import { paginar } from "@/lib/paginacion";
 import { RevisarPago } from "./revisar";
 import { fechaLarga } from "@/lib/format";
 
 const COLOR: Record<string, string> = {
-  en_revision: "bg-amber-100 text-amber-900",
-  aprobado: "bg-emerald-100 text-emerald-800",
-  rechazado: "bg-rose-100 text-rose-800",
+  en_revision: "bg-aviso-suave text-aviso-fuerte",
+  aprobado: "bg-exito-suave text-exito-fuerte",
+  rechazado: "bg-error-suave text-error-fuerte",
 };
 
-export default async function PaginaPagos() {
+export default async function PaginaPagos({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page } = await searchParams;
   const { academia } = await exigirAcademia();
-  const pagos = await listarPagos();
+  const todos = await listarPagos();
+  const { items: pagos, pagina, totalPaginas } = paginar(todos, Number(page) || 1);
 
-  const pendientes = pagos.filter((p) => p.estado === "en_revision");
-  const recaudado = pagos
+  // Los totales de las tarjetas son sobre TODOS los pagos, no solo la página visible.
+  const pendientes = todos.filter((p) => p.estado === "en_revision");
+  const recaudado = todos
     .filter((p) => p.estado === "aprobado")
     .reduce((s, p) => s + Number(p.monto), 0);
 
@@ -40,7 +49,7 @@ export default async function PaginaPagos() {
         </Tarjeta>
         <Tarjeta>
           <TarjetaTitulo>Comprobantes</TarjetaTitulo>
-          <TarjetaDato>{pagos.length}</TarjetaDato>
+          <TarjetaDato>{todos.length}</TarjetaDato>
         </Tarjeta>
       </section>
 
@@ -58,13 +67,15 @@ export default async function PaginaPagos() {
                   {fechaLarga(p.creado_en)}
                 </p>
               </div>
-              <span className={`rounded-md px-2 py-1 text-xs font-medium ${COLOR[p.estado]}`}>
+              <span
+                className={`rounded-md px-2 py-1 font-display text-xs font-semibold uppercase tracking-wide ${COLOR[p.estado]}`}
+              >
                 {p.estado.replace("_", " ")}
               </span>
             </div>
 
             {p.motivo_rechazo && (
-              <p className="mt-2 rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-800">
+              <p className="mt-2 rounded-lg bg-error-suave px-3 py-2 text-xs text-error-fuerte">
                 {p.motivo_rechazo}
               </p>
             )}
@@ -76,11 +87,17 @@ export default async function PaginaPagos() {
         ))}
       </ul>
 
-      {pagos.length === 0 && (
+      {todos.length === 0 && (
         <p className="mt-10 text-center text-sm text-slate-500">
           Todavía no hay comprobantes.
         </p>
       )}
+
+      <Paginador
+        pagina={pagina}
+        totalPaginas={totalPaginas}
+        hrefPara={(p) => `/app/pagos?page=${p}`}
+      />
     </main>
   );
 }

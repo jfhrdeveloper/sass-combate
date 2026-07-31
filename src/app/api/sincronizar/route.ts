@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { HAY_SUPABASE } from "@/lib/datos";
+import { avisarPeleasCercanas } from "@/lib/notificaciones";
+import { LIMITE_INSCRITOS_GRATIS, eventoDesbloqueado } from "@/lib/planes";
 
 /**
  * Recibe las operaciones que la mesa acumuló sin conexión.
@@ -42,7 +44,14 @@ export async function POST(req: NextRequest) {
   const rol = academias?.[0]?.rol as string | undefined;
   if (!organizacionId) return NextResponse.json({ error: "sin academia" }, { status: 403 });
 
-  const puedeEscribir = ["dueno", "admin", "mesa"].includes(rol ?? "");
+  // El coach solo puede inscribir a su propio club; el resto de operaciones son de mesa.
+  const ROLES_POR_TIPO: Record<string, string[]> = {
+    resultado: ["dueno", "admin", "mesa"],
+    pesaje: ["dueno", "admin", "mesa"],
+    asistencia: ["dueno", "admin", "mesa"],
+    inscripcion: ["dueno", "admin", "mesa", "coach"],
+  };
+  const puedeEscribir = (ROLES_POR_TIPO[tipo] ?? []).includes(rol ?? "");
   if (!puedeEscribir) return NextResponse.json({ error: "sin permiso" }, { status: 403 });
 
   try {
@@ -77,6 +86,14 @@ export async function POST(req: NextRequest) {
           .eq("id", peleaId);
 
         await supabase.rpc("recalcular_horarios", { p_evento_id: eventoId });
+
+        // Un fallo al avisar no debe tumbar el registro del resultado.
+        try {
+          const urlBase = `${req.nextUrl.protocol}//${req.nextUrl.host}`;
+          await avisarPeleasCercanas(eventoId, urlBase);
+        } catch {
+          // se reintenta solo en el próximo recálculo de horarios
+        }
         break;
       }
 
@@ -104,8 +121,115 @@ export async function POST(req: NextRequest) {
       }
 
       case "inscripcion": {
+        // Coincide con la resolución que antes hacía cargarListaClub: el alumno
+        // se busca primero en el registro compartido por documento; si no existe, se crea.
+        const fila = datos as {
+          nombre: string;
+          documento: string;
+          nacimiento: string;
+          sexo: string;
+          peso: string;
+          modalidad: string;
+          telefono?: string | null;
+          email?: string | null;
+        };
+        const [nombres, ...resto] = fila.nombre.split(" ");
+        const apellidos = resto.join(" ");
+
+        const { data: atleta } = await supabase
+          .from("atleta")
+          .upsert(
+            { documento: fila.documento, nombres, apellidos, nacimiento: fila.nacimiento, sexo: fila.sexo },
+            { onConflict: "documento" }
+          )
+          .select("id")
+          .single();
+
+        const { data: club } = await supabase.from("v_mi_club").select("id").limit(1).maybeSingle();
+
+        // upsert por organizacion_id+documento: reenviar la misma operación no duplica al peleador.
+        // Teléfono/correo son los que llegan con esta inscripción; si no llegan, no se tocan los que ya tenía.
+        const { data: peleador } = await supabase
+          .from("peleador")
+          .upsert(
+            {
+              organizacion_id: organizacionId,
+              club_id: club?.id ?? null,
+              atleta_id: atleta?.id ?? null,
+              nombres,
+              apellidos,
+              documento: fila.documento,
+              nacimiento: fila.nacimiento,
+              sexo: fila.sexo,
+              ...(fila.telefono ? { telefono: fila.telefono } : {}),
+              ...(fila.email ? { email: fila.email } : {}),
+            },
+            { onConflict: "organizacion_id,documento" }
+          )
+          .select("id")
+          .single();
+
+        const { data: modalidad } = await supabase
+          .from("modalidad")
+          .select("id")
+          .eq("codigo", fila.modalidad)
+          .limit(1)
+          .maybeSingle();
+
+        if (!peleador || !modalidad) {
+          return NextResponse.json({ error: "peleador o modalidad no encontrados" }, { status: 422 });
+        }
+
+        // El plan Gratis cubre hasta 40 inscritos por evento (ver /#precios). Se
+        // destraba con el plan Academia (organización completa) o con el
+        // desbloqueo puntual de ESTE evento (evento.plan_vence_en) — cualquiera
+        // de los dos alcanza. Solo cuenta si la inscripción es nueva: reenviar
+        // una ya existente (mismo evento+peleador+modalidad) es una
+        // actualización, no debe bloquearse.
+        const [{ data: organizacion }, { data: evento }] = await Promise.all([
+          supabase.from("organizacion").select("plan, plan_vence_en").eq("id", organizacionId).single(),
+          supabase.from("evento").select("plan_vence_en").eq("id", eventoId).single(),
+        ]);
+        if (
+          !eventoDesbloqueado(
+            organizacion?.plan ?? null,
+            organizacion?.plan_vence_en ?? null,
+            evento?.plan_vence_en ?? null
+          )
+        ) {
+          const { data: existente } = await supabase
+            .from("inscripcion")
+            .select("id")
+            .eq("evento_id", eventoId)
+            .eq("peleador_id", peleador.id)
+            .eq("modalidad_id", modalidad.id)
+            .maybeSingle();
+
+          if (!existente) {
+            const { count } = await supabase
+              .from("inscripcion")
+              .select("id", { count: "exact", head: true })
+              .eq("evento_id", eventoId);
+            if ((count ?? 0) >= LIMITE_INSCRITOS_GRATIS) {
+              return NextResponse.json(
+                {
+                  error: `El plan Gratis cubre hasta ${LIMITE_INSCRITOS_GRATIS} inscritos por evento. Desbloquea este evento desde /app/eventos/${eventoId} para seguir inscribiendo.`,
+                },
+                { status: 402 }
+              );
+            }
+          }
+        }
+
+        // upsert por evento_id+peleador_id+modalidad_id: reenviar la misma operación no duplica la inscripción.
         const { error } = await supabase.from("inscripcion").upsert(
-          { ...(datos as Record<string, unknown>), organizacion_id: organizacionId, evento_id: eventoId },
+          {
+            organizacion_id: organizacionId,
+            evento_id: eventoId,
+            peleador_id: peleador.id,
+            modalidad_id: modalidad.id,
+            peso_declarado: Number(fila.peso.replace(",", ".")),
+          },
           { onConflict: "evento_id,peleador_id,modalidad_id" }
         );
         if (error) throw error;

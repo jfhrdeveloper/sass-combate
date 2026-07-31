@@ -5,6 +5,9 @@ export interface FilaLista {
   sexo: string;
   peso: string;
   modalidad: string;
+  /** Opcionales: si vienen, se usan para avisarle cuando su pelea se acerque. */
+  telefono?: string;
+  email?: string;
   error?: string;
 }
 
@@ -13,7 +16,9 @@ export interface FilaLista {
  *
  * Acepta tabulaciones, punto y coma, comas o dos o más espacios como separador,
  * porque en la práctica llega de las tres formas y pedirle un formato exacto a
- * alguien que está apurado garantiza que no lo use.
+ * alguien que está apurado garantiza que no lo use. El teléfono y el correo
+ * son columnas opcionales al final: sin ellas, el alumno igual se inscribe,
+ * solo que no se le puede avisar por SMS/WhatsApp/email cuando su pelea se acerque.
  */
 export function analizarLista(texto: string): FilaLista[] {
   return texto
@@ -29,6 +34,8 @@ export function analizarLista(texto: string): FilaLista[] {
         sexo: (c[3] ?? "").toUpperCase(),
         peso: c[4] ?? "",
         modalidad: (c[5] ?? "").toLowerCase(),
+        telefono: c[6] || undefined,
+        email: c[7] || undefined,
       };
 
       if (fila.nombre.split(/\s+/).filter(Boolean).length < 2) {

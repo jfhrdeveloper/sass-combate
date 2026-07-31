@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Insignia } from "@/components/ui/badge";
+import { estilos } from "@/components/ui/button";
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
 import {
   AREAS_DEMO,
@@ -11,6 +12,9 @@ import {
 } from "@/lib/datos";
 import { construirAgenda, formatearRetraso } from "@/lib/horarios";
 import { hora, kg } from "@/lib/format";
+import { exigirAcademia } from "@/lib/auth";
+import { planEstaActivo } from "@/lib/planes";
+import { DesbloquearEvento } from "./desbloquear";
 
 export default async function PaginaEvento({
   params,
@@ -18,10 +22,12 @@ export default async function PaginaEvento({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const { academia, sesion } = await exigirAcademia();
   const agendas = construirAgenda(AREAS_DEMO, PELEAS_DEMO, BLOQUES_DEMO);
   const totalPeleas = PELEAS_DEMO.length;
   const finalizadas = PELEAS_DEMO.filter((p) => p.estado === "finalizada").length;
   const peorRetraso = Math.max(...agendas.map((a) => a.retrasoSeg));
+  const cubiertoPorAcademia = planEstaActivo(academia.plan, academia.plan_vence_en);
 
   return (
     <main className="mx-auto max-w-5xl p-6">
@@ -32,21 +38,18 @@ export default async function PaginaEvento({
           <p className="text-sm text-slate-600">{EVENTO_DEMO.sede}</p>
         </div>
         <div className="flex gap-2">
-          <Link
-            href={`/app/eventos/${id}/emparejar`}
-            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white"
-          >
+          <Link href={`/app/eventos/${id}/emparejar`} className={estilos({ tamano: "md" })}>
             Emparejar
           </Link>
           <Link
             href={`/app/eventos/${id}/pesaje`}
-            className="rounded-lg border border-borde bg-white px-4 py-2 text-sm font-medium"
+            className="rounded-lg border border-borde bg-panel px-4 py-2 font-display font-semibold transition-colors hover:bg-fondo"
           >
             Pesaje
           </Link>
           <Link
             href={`/mesa/${id}`}
-            className="rounded-lg border border-borde bg-white px-4 py-2 text-sm font-medium"
+            className="rounded-lg border border-borde bg-panel px-4 py-2 font-display font-semibold transition-colors hover:bg-fondo"
           >
             Mesa de control
           </Link>
@@ -54,7 +57,7 @@ export default async function PaginaEvento({
             href={`/api/eventos/${id}/credenciales`}
             target="_blank"
             rel="noreferrer"
-            className="rounded-lg border border-borde bg-white px-4 py-2 text-sm font-medium"
+            className="rounded-lg border border-borde bg-panel px-4 py-2 font-display font-semibold transition-colors hover:bg-fondo"
           >
             Credenciales
           </a>
@@ -62,7 +65,7 @@ export default async function PaginaEvento({
             href={`/api/eventos/${id}/acta`}
             target="_blank"
             rel="noreferrer"
-            className="rounded-lg border border-borde bg-white px-4 py-2 text-sm font-medium"
+            className="rounded-lg border border-borde bg-panel px-4 py-2 font-display font-semibold transition-colors hover:bg-fondo"
           >
             Acta
           </a>
@@ -93,6 +96,19 @@ export default async function PaginaEvento({
         </Tarjeta>
       </section>
 
+      {/* EVENTO_DEMO.plan_vence_en, no obtenerEvento(id): esta página ya
+          ignora HAY_SUPABASE en todo lo demás (usa *_DEMO fijo, ver
+          docs/pending-task.md) — cuando eso se corrija, acá también hay que
+          leer el evento real. */}
+      <div className="mt-4 max-w-md">
+        <DesbloquearEvento
+          eventoId={id}
+          email={sesion.email}
+          cubiertoPorAcademia={cubiertoPorAcademia}
+          venceEn={EVENTO_DEMO.plan_vence_en}
+        />
+      </div>
+
       {agendas.map((ag) => (
         <section key={ag.area.id} className="mt-8">
           <div className="flex items-baseline justify-between">
@@ -118,10 +134,10 @@ export default async function PaginaEvento({
                 {ag.filas.map((f) => {
                   if (f.tipo === "bloque") {
                     return (
-                      <tr key={f.id} className="border-t border-borde bg-amber-50/60">
+                      <tr key={f.id} className="border-t border-borde bg-aviso-suave/60">
                         <td className="px-3 py-2 tabular-nums">{hora(f.inicio)}</td>
                         <td className="px-3 py-2 text-slate-400">—</td>
-                        <td className="px-3 py-2 font-medium text-amber-900" colSpan={3}>
+                        <td className="px-3 py-2 font-medium text-aviso-fuerte" colSpan={3}>
                           {f.nombre} ({Math.round(f.duracionSeg / 60)} min)
                         </td>
                       </tr>
@@ -132,19 +148,23 @@ export default async function PaginaEvento({
                   const azul = inscripcionPorId(p.azul_id);
                   return (
                     <tr key={f.id} className="border-t border-borde">
-                      <td className="px-3 py-2 tabular-nums">
+                      <td className="px-3 py-2 font-display tabular-nums">
                         {hora(f.inicio)}
                         {f.real && <span className="ml-1 text-xs text-slate-400">real</span>}
                       </td>
                       <td className="px-3 py-2 text-slate-500">{f.orden}</td>
                       <td className="px-3 py-2">
-                        <span className="font-medium text-roja">{roja?.nombre ?? "—"}</span>
+                        <span className="font-display font-semibold text-roja">
+                          {roja?.nombre ?? "—"}
+                        </span>
                         <span className="block text-xs text-slate-500">
                           {roja?.club} · {kg(roja?.peso_pesaje ?? null)}
                         </span>
                       </td>
                       <td className="px-3 py-2">
-                        <span className="font-medium text-azul">{azul?.nombre ?? "—"}</span>
+                        <span className="font-display font-semibold text-azul">
+                          {azul?.nombre ?? "—"}
+                        </span>
                         <span className="block text-xs text-slate-500">
                           {azul?.club} · {kg(azul?.peso_pesaje ?? null)}
                         </span>

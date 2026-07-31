@@ -81,3 +81,27 @@ self.addEventListener("fetch", (evento) => {
 self.addEventListener("message", (evento) => {
   if (evento.data === "actualizar") self.skipWaiting();
 });
+
+/** Aviso de que la pelea del peleador está por empezar (ver src/lib/notificaciones/). */
+self.addEventListener("push", (evento) => {
+  let datos = { titulo: "sass-combate", cuerpo: "Tienes una notificación nueva.", url: "/" };
+  try {
+    if (evento.data) datos = { ...datos, ...evento.data.json() };
+  } catch {
+    datos.cuerpo = evento.data ? evento.data.text() : datos.cuerpo;
+  }
+
+  evento.waitUntil(
+    self.registration.showNotification(datos.titulo, {
+      body: datos.cuerpo,
+      icon: "/icono-192.png",
+      badge: "/icono-192.png",
+      data: { url: datos.url },
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (evento) => {
+  evento.notification.close();
+  evento.waitUntil(self.clients.openWindow(evento.notification.data?.url ?? "/"));
+});

@@ -6,11 +6,11 @@ import { fechaLarga, kg } from "@/lib/format";
 import { AgregarPeleaExterna } from "./agregar";
 
 const COLOR: Record<string, string> = {
-  victoria: "bg-emerald-100 text-emerald-800",
-  derrota: "bg-rose-100 text-rose-800",
-  empate: "bg-slate-100 text-slate-700",
-  exhibicion: "bg-sky-100 text-sky-800",
-  no_disputada: "bg-slate-100 text-slate-500",
+  victoria: "bg-exito-suave text-exito-fuerte",
+  derrota: "bg-error-suave text-error-fuerte",
+  empate: "bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300",
+  exhibicion: "bg-info-suave text-info-fuerte",
+  no_disputada: "bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-400",
 };
 
 export default async function PaginaAtleta({
@@ -81,7 +81,7 @@ export default async function PaginaAtleta({
               </span>
             </span>
             <span
-              className={`rounded-md px-2 py-1 text-xs font-medium ${COLOR[h.resultado]}`}
+              className={`rounded-md px-2 py-1 font-display text-xs font-semibold uppercase tracking-wide ${COLOR[h.resultado]}`}
             >
               {h.resultado}
               {h.metodo ? ` · ${h.metodo}` : ""}
@@ -91,7 +91,7 @@ export default async function PaginaAtleta({
       </ul>
 
       {ocultas > 0 && (
-        <p className="mt-3 rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-600">
+        <p className="mt-3 rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-600 dark:bg-white/10 dark:text-slate-300">
           Tiene {ocultas} pelea{ocultas === 1 ? "" : "s"} más registrada
           {ocultas === 1 ? "" : "s"} por otras academias. Cuentan para su nivel,
           pero el detalle no es visible desde aquí.

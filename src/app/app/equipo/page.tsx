@@ -8,6 +8,7 @@ import { Campo } from "@/components/ui/input";
 const ROLES: Array<[string, string]> = [
   ["admin", "Administra el evento completo"],
   ["mesa", "Registra resultados durante la jornada"],
+  ["coach", "Inscribe y paga por los alumnos de su club"],
   ["juez", "Consulta y puntúa"],
   ["lector", "Solo mira"],
 ];
@@ -32,7 +33,7 @@ export default function PaginaEquipo() {
           <select
             name="rol"
             defaultValue="mesa"
-            className="h-10 rounded-lg border border-borde bg-white px-3 text-sm"
+            className="h-10 rounded-lg border border-borde bg-panel px-3 text-sm"
           >
             {ROLES.map(([valor, desc]) => (
               <option key={valor} value={valor}>

@@ -2,10 +2,13 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import { z } from "zod";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { HAY_SUPABASE } from "@/lib/datos";
+import { crearReclamo, responderReclamo } from "@/lib/reclamos";
+import { LIMITE_EVENTOS_GRATIS, planEstaActivo } from "@/lib/planes";
+import { ROLES, COOKIE_ROL_DEMO, CUENTAS_DEMO, type Academia } from "@/lib/auth";
 
 export interface EstadoFormulario {
   error?: string;
@@ -28,7 +31,20 @@ export async function entrar(
   _prev: EstadoFormulario,
   datos: FormData
 ): Promise<EstadoFormulario> {
-  if (!HAY_SUPABASE) redirect("/app");
+  const volverDemo = String(datos.get("volver") ?? "/app");
+
+  if (!HAY_SUPABASE) {
+    const email = String(datos.get("email") ?? "").trim().toLowerCase();
+    const password = String(datos.get("password") ?? "");
+    const cuenta = CUENTAS_DEMO.find((c) => c.email === email);
+
+    if (!cuenta) return { error: "Correo no reconocido. Usá una de las cuentas de prueba." };
+    if (cuenta.password !== password) return { error: "Contraseña incorrecta" };
+
+    const jar = await cookies();
+    jar.set(COOKIE_ROL_DEMO, cuenta.rol, { path: "/" });
+    redirect(volverDemo.startsWith("/") ? volverDemo : "/app");
+  }
 
   const parsed = credenciales.safeParse({
     email: datos.get("email"),
@@ -99,6 +115,26 @@ export async function entrarConGoogle(datos: FormData) {
   redirect(data.url);
 }
 
+/**
+ * Solo modo demo: simula entrar con otro rol sin necesitar cuentas reales.
+ * No existe (ni debe existir) un equivalente en producción — ahí el rol
+ * viene de la tabla `miembro`, nunca de algo que el propio usuario elige.
+ */
+export async function cambiarRolDemo(formData: FormData) {
+  const volver = (formData.get("volver") as string | null) || "/app";
+  if (!HAY_SUPABASE) {
+    const rol = formData.get("rol");
+    if (typeof rol === "string" && ROLES.includes(rol as Academia["rol"])) {
+      const jar = await cookies();
+      jar.set(COOKIE_ROL_DEMO, rol, { path: "/" });
+    }
+  }
+  // El redirect (no solo revalidatePath) es necesario para forzar una
+  // request nueva: dentro de esta misma acción, el render ya en curso
+  // todavía ve la cookie vieja.
+  redirect(volver);
+}
+
 export async function salir() {
   if (HAY_SUPABASE) {
     const supabase = await crearClienteServidor();
@@ -160,9 +196,28 @@ export async function crearEvento(
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
   const supabase = await crearClienteServidor();
-  const { data: academias } = await supabase.from("v_mis_academias").select("id").limit(1);
+  const { data: academias } = await supabase
+    .from("v_mis_academias")
+    .select("id, plan, plan_vence_en")
+    .limit(1);
   const organizacionId = academias?.[0]?.id;
+  const academia = academias?.[0];
   if (!organizacionId) redirect("/nueva-academia");
+
+  // El plan Gratis cubre un solo evento activo a la vez (ver /#precios).
+  if (!planEstaActivo(academia?.plan ?? null, academia?.plan_vence_en ?? null)) {
+    const { count } = await supabase
+      .from("evento")
+      .select("id", { count: "exact", head: true })
+      .eq("organizacion_id", organizacionId)
+      .neq("estado", "finalizado");
+    if ((count ?? 0) >= LIMITE_EVENTOS_GRATIS) {
+      return {
+        error:
+          "El plan Gratis cubre un solo evento activo a la vez. Cierra el actual o activa un plan en /app/plan para crear otro.",
+      };
+    }
+  }
 
   const slug = parsed.data.nombre
     .toLowerCase()
@@ -198,7 +253,7 @@ export async function invitarMiembro(
   const parsed = z
     .object({
       email: z.string().email("Correo no válido"),
-      rol: z.enum(["admin", "mesa", "juez", "lector"]),
+      rol: z.enum(["admin", "mesa", "coach", "juez", "lector"]),
     })
     .safeParse({ email: datos.get("email"), rol: datos.get("rol") });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
@@ -263,112 +318,6 @@ export async function registrarPeleaExterna(
   return { ok: "Pelea agregada al historial" };
 }
 
-const filaLista = z.object({
-  nombre: z.string().min(3),
-  documento: z.string().regex(/^\d{7,12}$/),
-  nacimiento: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  sexo: z.enum(["M", "F"]),
-  peso: z.string(),
-  modalidad: z.string().min(2),
-});
-
-/**
- * Carga masiva de alumnos por parte del coach.
- *
- * Cada alumno se busca primero en el registro compartido por documento. Si ya
- * existe, se reutiliza su atleta y su récord; si no, se crea.
- */
-export async function cargarListaClub(
-  _prev: EstadoFormulario,
-  datos: FormData
-): Promise<EstadoFormulario> {
-  const eventoId = String(datos.get("eventoId") ?? "");
-  let filas: z.infer<typeof filaLista>[];
-
-  try {
-    filas = z.array(filaLista).parse(JSON.parse(String(datos.get("lista") ?? "[]")));
-  } catch {
-    return { error: "La lista tiene un formato que no se pudo leer" };
-  }
-
-  if (filas.length === 0) return { error: "No hay alumnos válidos para inscribir" };
-
-  if (!HAY_SUPABASE) {
-    return { ok: `En modo demo no se guarda. Se habrían inscrito ${filas.length}.` };
-  }
-
-  const supabase = await crearClienteServidor();
-  const { data: academias } = await supabase.from("v_mis_academias").select("id").limit(1);
-  const organizacionId = academias?.[0]?.id;
-  if (!organizacionId) return { error: "No tienes una academia" };
-
-  const { data: club } = await supabase.from("v_mi_club").select("id").limit(1).maybeSingle();
-
-  let creados = 0;
-  for (const f of filas) {
-    const [nombres, ...resto] = f.nombre.split(" ");
-    const apellidos = resto.join(" ");
-
-    const { data: atleta } = await supabase
-      .from("atleta")
-      .upsert(
-        {
-          documento: f.documento,
-          nombres,
-          apellidos,
-          nacimiento: f.nacimiento,
-          sexo: f.sexo,
-        },
-        { onConflict: "documento" }
-      )
-      .select("id")
-      .single();
-
-    const { data: peleador } = await supabase
-      .from("peleador")
-      .upsert(
-        {
-          organizacion_id: organizacionId,
-          club_id: club?.id ?? null,
-          atleta_id: atleta?.id ?? null,
-          nombres,
-          apellidos,
-          documento: f.documento,
-          nacimiento: f.nacimiento,
-          sexo: f.sexo,
-        },
-        { onConflict: "organizacion_id,documento" }
-      )
-      .select("id")
-      .single();
-
-    const { data: modalidad } = await supabase
-      .from("modalidad")
-      .select("id")
-      .eq("codigo", f.modalidad)
-      .limit(1)
-      .maybeSingle();
-
-    if (!peleador || !modalidad) continue;
-
-    const { error } = await supabase.from("inscripcion").upsert(
-      {
-        organizacion_id: organizacionId,
-        evento_id: eventoId,
-        peleador_id: peleador.id,
-        modalidad_id: modalidad.id,
-        peso_declarado: Number(f.peso.replace(",", ".")),
-      },
-      { onConflict: "evento_id,peleador_id,modalidad_id" }
-    );
-
-    if (!error) creados++;
-  }
-
-  revalidatePath("/app/mi-club");
-  return { ok: `${creados} alumno(s) inscritos` };
-}
-
 export async function registrarPago(
   _prev: EstadoFormulario,
   datos: FormData
@@ -412,18 +361,30 @@ export async function registrarPago(
     comprobanteUrl = ruta;
   }
 
-  const { error } = await supabase.from("pago").insert({
-    organizacion_id: organizacionId,
-    evento_id: parsed.data.eventoId,
-    club_id: club?.id ?? null,
-    metodo: parsed.data.metodo,
-    monto: parsed.data.monto,
-    referencia: parsed.data.referencia || null,
-    comprobante_url: comprobanteUrl,
-    estado: "en_revision",
-  });
+  const { data: pago, error } = await supabase
+    .from("pago")
+    .insert({
+      organizacion_id: organizacionId,
+      evento_id: parsed.data.eventoId,
+      club_id: club?.id ?? null,
+      metodo: parsed.data.metodo,
+      monto: parsed.data.monto,
+      referencia: parsed.data.referencia || null,
+      comprobante_url: comprobanteUrl,
+      estado: "en_revision",
+    })
+    .select("id")
+    .single();
 
-  if (error) return { error: "No se pudo registrar el pago" };
+  if (error || !pago) return { error: "No se pudo registrar el pago" };
+
+  // Vincula ahora las inscripciones pendientes del club: cuando el organizador
+  // apruebe este pago, el trigger aplicar_pago ya las va a encontrar.
+  await supabase.rpc("vincular_pago_inscripciones", {
+    p_pago_id: pago.id,
+    p_evento_id: parsed.data.eventoId,
+    p_club_id: club?.id ?? null,
+  });
 
   revalidatePath("/app/mi-club");
   return { ok: "Comprobante enviado. El organizador lo va a revisar." };
@@ -463,4 +424,70 @@ export async function revisarPago(
 
   revalidatePath("/app/pagos");
   return { ok: parsed.data.decision === "aprobado" ? "Pago aprobado" : "Pago rechazado" };
+}
+
+const reclamoSchema = z.object({
+  tipo: z.enum(["reclamo", "queja"]),
+  consumidorNombre: z.string().min(3, "Escribe tu nombre completo"),
+  documentoTipo: z.enum(["dni", "ce", "pasaporte"]),
+  documentoNumero: z.string().min(6, "Documento no válido"),
+  consumidorDomicilio: z.string().min(5, "Escribe tu domicilio"),
+  consumidorTelefono: z.string().optional(),
+  consumidorCorreo: z.string().email("Correo no válido"),
+  esMenorEdad: z.string().optional(),
+  tutorNombre: z.string().optional(),
+  bienOServicio: z.string().min(3, "Indica el plan o servicio por el que reclamas"),
+  montoReclamado: z.coerce.number().optional(),
+  detalle: z.string().min(10, "Cuéntanos con más detalle qué pasó"),
+  pedido: z.string().min(3, "Indica qué solicitas"),
+});
+
+export async function enviarReclamo(
+  _prev: EstadoFormulario,
+  datos: FormData
+): Promise<EstadoFormulario> {
+  const parsed = reclamoSchema.safeParse(Object.fromEntries(datos));
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  const resultado = await crearReclamo({
+    tipo: parsed.data.tipo,
+    consumidor_nombre: parsed.data.consumidorNombre,
+    documento_tipo: parsed.data.documentoTipo,
+    documento_numero: parsed.data.documentoNumero,
+    consumidor_domicilio: parsed.data.consumidorDomicilio,
+    consumidor_telefono: parsed.data.consumidorTelefono || undefined,
+    consumidor_correo: parsed.data.consumidorCorreo,
+    es_menor_edad: parsed.data.esMenorEdad === "on",
+    tutor_nombre: parsed.data.tutorNombre || undefined,
+    bien_o_servicio: parsed.data.bienOServicio,
+    monto_reclamado: parsed.data.montoReclamado,
+    detalle: parsed.data.detalle,
+    pedido: parsed.data.pedido,
+  });
+
+  if (!resultado.ok) return { error: resultado.error };
+
+  return {
+    ok:
+      resultado.numero === null
+        ? "Modo demo: en producción este reclamo se guardaría y te llegaría un número de seguimiento."
+        : `Reclamo registrado con el número RC-${resultado.numero}. Tienes hasta 15 días hábiles para recibir nuestra respuesta.`,
+  };
+}
+
+export async function responderReclamoAccion(
+  _prev: EstadoFormulario,
+  datos: FormData
+): Promise<EstadoFormulario> {
+  const parsed = z
+    .object({ reclamoId: z.string().min(1), respuesta: z.string().min(5, "Escribe la respuesta") })
+    .safeParse(Object.fromEntries(datos));
+
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  const { ok } = await responderReclamo(parsed.data.reclamoId, parsed.data.respuesta);
+  if (!ok) return { error: "No se pudo guardar la respuesta" };
+
+  revalidatePath("/admin/reclamos");
+  return { ok: "Respuesta enviada" };
 }

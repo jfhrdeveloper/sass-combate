@@ -85,7 +85,7 @@ export default function PaginaPesaje({
             <li
               key={i.id}
               className={`rounded-xl border bg-panel p-3 ${
-                peso ? "border-emerald-300" : "border-borde"
+                peso ? "border-exito" : "border-borde"
               }`}
             >
               <div className="flex flex-wrap items-center gap-3">
@@ -105,7 +105,7 @@ export default function PaginaPesaje({
                     onBlur={(e) => registrarPeso(i.id, e.target.value)}
                   />
                   {peso ? (
-                    <span className="rounded-md bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-800">
+                    <span className="rounded-md bg-exito-suave px-2 py-1 text-xs font-medium text-exito-fuerte">
                       ✓
                     </span>
                   ) : (
@@ -115,7 +115,7 @@ export default function PaginaPesaje({
               </div>
 
               {peso && i.peso_pesaje && Math.abs(peso - i.peso_pesaje) > 2 && (
-                <p className="mt-2 rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-900">
+                <p className="mt-2 rounded-md bg-aviso-suave px-2 py-1 text-xs text-aviso-fuerte">
                   Declaró {i.peso_pesaje} kg y dio {peso} kg. Puede que haya que
                   cambiarlo de categoría.
                 </p>
@@ -129,8 +129,8 @@ export default function PaginaPesaje({
         <p className="mt-8 text-center text-sm text-slate-500">Nadie coincide con la búsqueda.</p>
       )}
 
-      <div className="mt-6 rounded-xl border border-borde bg-panel p-4 text-sm text-slate-600">
-        <p className="font-medium text-slate-900">Puedes pesar sin internet</p>
+      <div className="mt-6 rounded-xl border border-borde bg-panel p-4 text-sm text-slate-600 dark:text-slate-300">
+        <p className="font-medium text-slate-900 dark:text-white">Puedes pesar sin internet</p>
         <p className="mt-1">
           Todo se guarda en este dispositivo y se envía solo cuando vuelva la
           señal. No cierres la pestaña hasta ver &ldquo;Todo sincronizado&rdquo;.

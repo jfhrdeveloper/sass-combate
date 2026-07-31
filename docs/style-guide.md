@@ -3,9 +3,12 @@
 > Fuente única de verdad para estilo visual y convenciones de código. No duplicar en CLAUDE.md.
 
 ## Tipografía
-- Familia(s): sin fuente personalizada declarada; usa la fuente por defecto del sistema (`sans-serif` del navegador). No hay `next/font` configurado en `src/app/layout.tsx`.
+- Familias (`next/font/google` en `src/app/layout.tsx`, expuestas como `--font-display`/`--font-body` y `font-display`/`font-body` en Tailwind):
+  - **Barlow Condensed** (`font-display`) — títulos (`h1`/`h2`/`h3`, regla global en `globals.css`), botones (`Boton`), números de marcador (`TarjetaDato`, `TarjetaPelea`, horas), insignias de estado (`Insignia`). Es la tipografía de cartelera de pelea/tabla de posiciones: condensada, en mayúsculas en los botones tamaño `mesa` y en las insignias de estado, normal en el resto.
+  - **Inter** (`font-body`) — texto de párrafo, tablas de datos, formularios. Es el `body` por defecto (`globals.css`).
+  - **Regla:** no mezclar tipografías fuera de este esquema; si un elemento es un título, un botón, un número destacado o una insignia de estado, usa `font-display` (ya viene incluido en `Boton`/`TarjetaDato`/`Insignia`/`h1`-`h3`); todo lo demás hereda `font-body` del `body`.
 - Escala / tamaños: clases de Tailwind directas por componente (`text-sm`, `text-lg`, `text-2xl` en `Boton`, por ejemplo). No hay una escala tipográfica centralizada todavía.
-- Pesos y usos: `font-medium` en botones, `font-semibold` en el tamaño `mesa` (pantalla de mesa de control, texto grande para uso con guantes/distancia).
+- Pesos y usos: `font-semibold` en botones y números destacados; tamaño `mesa` de `Boton` además va en mayúsculas (`uppercase`) para lectura a distancia/con guantes.
 
 ## Paleta
 Definida en `tailwind.config.ts` como colores con nombre en español (`extend.colors`):
@@ -17,10 +20,24 @@ Definida en `tailwind.config.ts` como colores con nombre en español (`extend.co
 | `fondo` | `hsl(210 20% 98%)` | Fondo general del body |
 | `roja` | `hsl(0 72% 45%)` | Esquina roja / acciones destructivas o de alerta |
 | `azul` | `hsl(214 80% 45%)` | Esquina azul / acciones primarias alternas |
+| `exito` / `exito-suave` / `exito-fuerte` | `hsl(160 84% 39%)` / `hsl(149 80% 92%)` / `hsl(163 88% 20%)` | Estado de éxito (pago aprobado, pesaje correcto, sincronizado) |
+| `aviso` / `aviso-suave` / `aviso-fuerte` | `hsl(38 92% 50%)` / `hsl(48 96% 89%)` / `hsl(23 83% 31%)` | Estado de aviso (pendiente, modo demo, por pagar) |
+| `error` / `error-suave` / `error-fuerte` | `hsl(350 89% 60%)` / `hsl(356 100% 95%)` / `hsl(347 77% 37%)` | Estado de error (rechazado, derrota, con errores de sync) |
+| `info` / `info-suave` / `info-fuerte` | `hsl(199 89% 48%)` / `hsl(204 94% 94%)` / `hsl(202 80% 24%)` | Estado informativo (sincronizando, exhibición) |
 
-- Estados (éxito / aviso / error / info): no hay tokens dedicados aún; se usan utilidades de Tailwind sueltas (`text-slate-900`, etc.) donde hace falta. Pendiente formalizar.
-- Modo oscuro: no implementado (`color-scheme: light` fijo en `globals.css`).
-- **Regla:** nunca redefinir `roja`/`azul`/`borde`/`panel`/`fondo` con valores hex sueltos en componentes; siempre usar las clases de Tailwind generadas desde `tailwind.config.ts`.
+- Cada token de estado tiene tres variantes: `DEFAULT` (sólido, para puntos/bordes), `-suave` (fondo tenue) y `-fuerte` (texto oscuro sobre el fondo suave) — mismo patrón que `bg-aviso-suave text-aviso-fuerte`.
+- **Regla:** no usar clases sueltas de Tailwind (`bg-amber-100`, `text-emerald-800`, etc.) para estados; siempre los tokens `exito`/`aviso`/`error`/`info` de arriba.
+- **Regla:** nunca redefinir `roja`/`azul`/`borde`/`panel`/`fondo`/`exito`/`aviso`/`error`/`info` con valores hex sueltos en componentes; siempre usar las clases de Tailwind generadas desde `tailwind.config.ts`.
+
+### Modo oscuro
+Implementado con la estrategia `class` de Tailwind (`darkMode: "class"` en `tailwind.config.ts`):
+
+- Cada token de color (`borde`, `panel`, `fondo`, `roja`, `azul`, `exito`/`aviso`/`error`/`info` y sus `-suave`/`-fuerte`) lee de una variable CSS definida en `:root` (claro) y `.dark` (oscuro) en `globals.css` — por eso alternar la clase `.dark` en `<html>` cambia toda la app sin tocar componentes.
+- En los chips de estado (`bg-X-suave text-X-fuerte`), el oscuro **intercambia qué tono es fondo y cuál es texto** (fondo oscuro saturado + texto claro del mismo tono), no invierte colores planos — así el chip sigue siendo legible.
+- Los valores de `roja`/`azul` en oscuro se recalcularon verificando contraste WCAG real (contra blanco, contra `fondo` oscuro y contra `panel` oscuro), no a ojo — ver el histórico de la sesión en `docs/pending-task.md` si hace falta reajustarlos.
+- **`ThemeToggle`** (`src/components/theme-toggle.tsx`) alterna `document.documentElement.classList` y guarda la preferencia en `localStorage` (`"tema"`). Un script inline en `src/app/layout.tsx` aplica el tema guardado (o `prefers-color-scheme` si no hay preferencia) antes del primer paint, para no parpadear.
+- **Regla:** cualquier color nuevo debe pensarse para los dos temas a la vez (no solo agregar un `dark:` suelto sin revisar contraste); si es un color de marca/estado, agregarlo como variable CSS en `globals.css` en vez de una utilidad de Tailwind cableada.
+- **Pendiente:** el modo oscuro está completo en la landing, páginas legales y en los componentes compartidos (`Boton`, `Tarjeta`, `Insignia`, `Campo`, `TarjetaPelea`); el resto de `/app` hereda los tokens automáticamente. Se corrigieron los casos más visibles (botones que reinventaban el variante `solido` sin el swap oscuro, chips `bg-slate-100`/`text-slate-900` sueltos en el dashboard, atletas, pesaje y emparejamiento — ver bitácora de 2026-07-29), pero un `text-slate-500`/`600` suelto sin `dark:` en texto secundario de página sigue apareciendo en varios lugares de `/app` que no se tocaron; seguir usando `TarjetaTitulo`/`Insignia`/`estilos()` en vez de clases sueltas al tocar esas páginas.
 
 ## Espaciado y breakpoints
 - Escala de espaciado: la por defecto de Tailwind, sin extensión custom.
@@ -45,14 +62,16 @@ Diseña primero para móvil y escala hacia arriba. Breakpoints estándar de Tail
 - **Mesa de control y pesaje** son pantallas usadas en el borde de un ring/tatami, a veces con guantes puestos o desde el celular: priorizar el tamaño `mesa` (`h-24 px-6 text-2xl`) de `Boton` para las acciones críticas en esas rutas.
 
 ## Componentes UI
-Los componentes base viven en `src/components/ui/` (`badge.tsx`, `button.tsx`, `card.tsx`, `formulario.tsx`, `input.tsx`), construidos con `class-variance-authority` (`cva`) + `cn` (`clsx` + `tailwind-merge`, en `src/lib/utils.ts`).
+Los componentes base viven en `src/components/ui/` (`badge.tsx`, `button.tsx`, `card.tsx`, `formulario.tsx`, `input.tsx`, `tarjeta-pelea.tsx`), construidos con `class-variance-authority` (`cva`) + `cn` (`clsx` + `tailwind-merge`, en `src/lib/utils.ts`).
 
 - **Botones (`Boton`, en `button.tsx`):**
   - Variantes: `solido` (default), `contorno`, `roja`, `azul`, `fantasma`.
-  - Tamaños: `sm`, `md` (default), `lg`, `mesa` (pantallas de mesa de control, ver arriba).
+  - Tamaños: `sm`, `md` (default), `lg`, `mesa` (pantallas de mesa de control, ver arriba; además va en mayúsculas).
+- **`TarjetaPelea` (`tarjeta-pelea.tsx`):** la firma visual de la plataforma — el enfrentamiento roja/azul, con roja alineada a la derecha y azul a la izquierda mirándose (como un cartel de pelea real), separadas por una marca "vs". Tamaños `sm`/`md`/`lg`. Se usa en mesa de control, emparejamiento, el evento público y la credencial personal — siempre que se muestre un cruce, usar este componente en vez de armar el layout a mano. **Cuidado con `lg` en contenedores angostos** (menos de ~400px): con nombres largos trunca; en esos casos usar `md`.
+- **Insignias de estado (`Insignia`, en `badge.tsx`; también los chips de `COLOR[...]` en pagos/atletas/mi-club):** `font-display`, mayúsculas, `tracking-wide` — mismo lenguaje visual en toda la plataforma para cualquier chip de estado.
 - **Formularios e inputs:** `react-hook-form` + `@hookform/resolvers` + `zod` para validación; componentes en `formulario.tsx` e `input.tsx`.
 - **Modales / overlays:** no hay un componente propio todavía; agregar aquí cuando se cree.
-- **Tablas / listas:** `@tanstack/react-table` para tablas con datos (ver `src/app/app/atletas/page.tsx` y similares).
+- **Tablas / listas:** `@tanstack/react-table` está instalado pero todavía no se usa en ningún componente — hoy las listas son `.map()` simple. Cualquier lista de **más de 8 elementos** pagina con `paginar()` (`src/lib/paginacion.ts`) + `<Paginador>` (`src/components/ui/paginador.tsx`, sin JS de cliente: navega por `?page=`) — ver `src/app/app/atletas/page.tsx`, `pagos/page.tsx`, `mi-club/page.tsx`, `admin/reclamos/page.tsx` y `app/page.tsx`. Los contadores de tarjetas/resúmenes siempre se calculan sobre la lista completa, nunca sobre la página visible.
 - **Clases globales reutilizables:** centralizar en `globals.css` cualquier patrón que se repita en 3+ componentes; no redeclarar las mismas utilidades de Tailwind una y otra vez.
 
 ## Animación
@@ -98,11 +117,11 @@ Buenas prácticas base a mantener en este proyecto (mesa de control y pesaje se 
 - **Sin scroll horizontal accidental.** Envolver las tablas de `@tanstack/react-table` (atletas, pagos) en contenedores `overflow-x: auto`.
 - **`box-sizing: border-box`** — verificar que esté global (Tailwind lo aplica vía `preflight`, no desactivar `preflight`).
 - **Inputs numéricos sin spinners** en peso/edad/rondas donde el ingreso es manual.
-- **Anti-flash de tema:** no aplica mientras no haya modo oscuro.
+- **Anti-flash de tema:** resuelto — script inline en `src/app/layout.tsx` aplica `.dark` antes del primer paint (ver sección Modo oscuro arriba).
 - **NUNCA deshabilitar el zoom del usuario** — ya se respeta (ver Accesibilidad arriba).
 
 ## Anti-patrones
-- **No** redefinir `roja`/`azul`/`borde`/`panel`/`fondo` con valores hex sueltos; usar los tokens de `tailwind.config.ts`.
+- **No** redefinir `roja`/`azul`/`borde`/`panel`/`fondo`/`exito`/`aviso`/`error`/`info` con valores hex sueltos; usar los tokens de `tailwind.config.ts`.
 - **No** usar anchos fijos en px para contenedores; usar `w-full` + `max-w-*`.
 - **No** usar `//` dentro del JSX (en el `return`); solo `{/* ... */}`.
 - **No** escribir un campo de hora editable a mano en el modelo de eventos/peleas: las horas se calculan (`construirAgenda` en `src/lib/horarios.ts`), nunca se escriben directamente — ver `docs/architecture.md` §10.

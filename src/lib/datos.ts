@@ -11,9 +11,17 @@ export interface Evento {
   fecha: string;
   sede: string | null;
   estado: string;
+  plan_vence_en: string | null;
 }
 
-const FECHA = "2026-07-25";
+/**
+ * Se calcula al cargar el módulo (no un literal fijo): un evento demo con
+ * fecha estática se queda "atrasado" apenas pasan los días — el cálculo de
+ * retraso en tiempo real (`horarios.ts`) lo compara contra `new Date()` y
+ * termina mostrando disparates como "125 h de retraso". Así el evento demo
+ * siempre pasa "hoy".
+ */
+const FECHA = new Date().toISOString().slice(0, 10);
 
 export const EVENTO_DEMO: Evento = {
   id: "demo",
@@ -22,6 +30,7 @@ export const EVENTO_DEMO: Evento = {
   fecha: FECHA,
   sede: "Casa de la Cultura, San Miguel",
   estado: "en_curso",
+  plan_vence_en: null,
 };
 
 export const AREAS_DEMO: Area[] = [

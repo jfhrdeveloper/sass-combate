@@ -22,7 +22,7 @@ export async function listarEventos(_organizacionId: string): Promise<Evento[]> 
   const supabase = await crearClienteServidor();
   const { data } = await supabase
     .from("evento")
-    .select("id, nombre, slug, fecha, sede, estado")
+    .select("id, nombre, slug, fecha, sede, estado, plan_vence_en")
     .order("fecha", { ascending: false });
 
   return (data ?? []) as Evento[];
@@ -34,7 +34,7 @@ export async function obtenerEvento(id: string): Promise<Evento | null> {
   const supabase = await crearClienteServidor();
   const { data } = await supabase
     .from("evento")
-    .select("id, nombre, slug, fecha, sede, estado")
+    .select("id, nombre, slug, fecha, sede, estado, plan_vence_en")
     .eq("id", id)
     .maybeSingle();
 

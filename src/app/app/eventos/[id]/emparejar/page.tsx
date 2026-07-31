@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Boton } from "@/components/ui/button";
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
+import { TarjetaPelea } from "@/components/ui/tarjeta-pelea";
 import { INSCRIPCIONES_DEMO } from "@/lib/datos";
 import { REGLAS_POR_DEFECTO, emparejar, type Cruce } from "@/lib/emparejador";
 import { NOMBRE_MODALIDAD } from "@/lib/types";
@@ -107,7 +108,7 @@ export default function PaginaEmparejar() {
               key={k}
               className={`rounded-xl border bg-panel p-3 ${
                 decision === "si"
-                  ? "border-emerald-400"
+                  ? "border-exito"
                   : decision === "no"
                     ? "border-borde opacity-50"
                     : "border-borde"
@@ -115,18 +116,14 @@ export default function PaginaEmparejar() {
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate">
-                    <span className="font-medium text-roja">{c.a.nombre}</span>
-                    <span className="mx-2 text-slate-400">vs</span>
-                    <span className="font-medium text-azul">{c.b.nombre}</span>
-                  </p>
-                  <p className="text-xs text-slate-500">
+                  <TarjetaPelea roja={c.a.nombre} azul={c.b.nombre} tamano="sm" />
+                  <p className="mt-1 text-center text-xs text-slate-500">
                     {c.a.club} {kg(c.a.peso_pesaje)} · {c.b.club} {kg(c.b.peso_pesaje)} ·{" "}
                     {NOMBRE_MODALIDAD[c.modalidad]} · {c.criterio}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="rounded-md bg-slate-100 px-2 py-1 text-xs tabular-nums">
+                  <span className="rounded-md bg-slate-100 px-2 py-1 font-display text-sm font-semibold tabular-nums dark:bg-white/10 dark:text-slate-100">
                     {c.score.toFixed(0)}
                   </span>
                   <Boton

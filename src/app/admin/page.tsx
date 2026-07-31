@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
 import { academiasDePlataforma } from "@/lib/auth";
 import { fechaLarga } from "@/lib/format";
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function PanelPlataforma() {
   const academias = await academiasDePlataforma();

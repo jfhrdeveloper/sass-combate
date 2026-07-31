@@ -4,24 +4,24 @@ import type { EstadoSync } from "@/lib/offline/sincronizacion";
 
 const ESTILOS: Record<EstadoSync, { fondo: string; texto: string; punto: string }> = {
   sin_conexion: {
-    fondo: "bg-amber-100",
-    texto: "text-amber-900",
-    punto: "bg-amber-500 animate-pulse",
+    fondo: "bg-aviso-suave",
+    texto: "text-aviso-fuerte",
+    punto: "bg-aviso animate-pulse",
   },
   sincronizando: {
-    fondo: "bg-sky-100",
-    texto: "text-sky-900",
-    punto: "bg-sky-500 animate-ping",
+    fondo: "bg-info-suave",
+    texto: "text-info-fuerte",
+    punto: "bg-info animate-ping",
   },
   sincronizado: {
-    fondo: "bg-emerald-100",
-    texto: "text-emerald-900",
-    punto: "bg-emerald-500",
+    fondo: "bg-exito-suave",
+    texto: "text-exito-fuerte",
+    punto: "bg-exito",
   },
   con_errores: {
-    fondo: "bg-rose-100",
-    texto: "text-rose-900",
-    punto: "bg-rose-500 animate-pulse",
+    fondo: "bg-error-suave",
+    texto: "text-error-fuerte",
+    punto: "bg-error animate-pulse",
   },
 };
 
@@ -62,7 +62,7 @@ export function EstadoConexion({
       <span className="relative flex h-2.5 w-2.5">
         <span className={`absolute inline-flex h-full w-full rounded-full ${e.punto}`} />
         {estado === "sincronizando" && (
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-sky-600" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-info" />
         )}
       </span>
 

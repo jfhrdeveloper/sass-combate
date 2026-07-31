@@ -44,7 +44,7 @@ export function AgregarPeleaExterna({ atletaId }: { atletaId: string }) {
           <span className="text-slate-600">Resultado</span>
           <select
             name="resultado"
-            className="h-10 rounded-lg border border-borde bg-white px-3 text-sm"
+            className="h-10 rounded-lg border border-borde bg-panel px-3 text-sm"
             defaultValue="victoria"
           >
             <option value="victoria">Victoria</option>
