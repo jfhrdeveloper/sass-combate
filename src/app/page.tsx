@@ -3,12 +3,13 @@ import Link from "next/link";
 import { TarjetaPelea } from "@/components/ui/tarjeta-pelea";
 import { Insignia } from "@/components/ui/badge";
 import { estilos } from "@/components/ui/button";
+import { Reveal } from "@/components/ui/reveal";
 import { NavLanding } from "@/components/nav-landing";
 import { FooterLanding } from "@/components/footer-landing";
+import { WhatsAppFab } from "@/components/whatsapp-fab";
+import { urlWhatsApp } from "@/lib/contacto";
 import { NOMBRE_MODALIDAD } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
-const WHATSAPP = "https://wa.me/51931314659?text=Hola%2C%20quiero%20una%20demo%20de%20sass-combate";
 
 const TITULO = "sass-combate — Torneos de kickboxing, muay thai y MMA sin Excel";
 const DESCRIPCION =
@@ -151,24 +152,33 @@ export default function Landing() {
     <>
       <NavLanding />
       <main>
-        <section className="mx-auto grid max-w-5xl gap-10 px-6 py-20 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:py-28">
+        <section
+          id="inicio"
+          className="mx-auto grid max-w-5xl scroll-mt-24 gap-10 px-6 pb-20 pt-28 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:pt-32 lg:pb-28"
+        >
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            <p className="animate-fade-in-up text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Para academias de deportes de contacto
             </p>
-            <h1 className="mt-3 font-display text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl">
+            <h1
+              className="animate-fade-in-up mt-3 font-display text-5xl font-semibold leading-[0.95] tracking-tight sm:text-6xl"
+              style={{ animationDelay: "0.13s" }}
+            >
               Tu torneo,
               <br />
               sin el Excel
             </h1>
-            <p className="mt-5 max-w-lg text-lg text-slate-600 dark:text-slate-300">
+            <p
+              className="animate-fade-in-up mt-5 max-w-lg text-lg text-slate-600 dark:text-slate-300"
+              style={{ animationDelay: "0.26s" }}
+            >
               Inscripciones, emparejamiento, horarios en vivo y resultados. Para
               kickboxing, muay thai, boxeo, MMA y cualquier deporte de combate.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="animate-fade-in-up mt-8 flex flex-wrap gap-3" style={{ animationDelay: "0.39s" }}>
               <Link
                 href="/registro"
-                className="rounded-lg bg-slate-900 px-6 py-3 font-display text-lg font-semibold text-white transition-colors hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+                className="rounded-lg bg-slate-900 px-6 py-3 font-display text-lg font-semibold text-white transition-all hover:scale-105 hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
               >
                 Crear mi academia
               </Link>
@@ -181,23 +191,29 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-borde bg-panel p-5 shadow-sm">
-            <div className="flex items-center justify-between text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">
-              <span>Tatami 1 · pelea 12</span>
-              <Insignia estado="en_curso" />
+          <div className="animate-fade-in-up relative" style={{ animationDelay: "0.52s" }}>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-8 top-6 -z-10 h-3/4 rounded-full bg-roja/10 blur-3xl dark:bg-roja/20"
+            />
+            <div className="rounded-2xl border border-borde bg-panel p-5 shadow-sm">
+              <div className="flex items-center justify-between text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                <span>Tatami 1 · pelea 12</span>
+                <Insignia estado="en_curso" />
+              </div>
+              <TarjetaPelea roja="J. Zárate" azul="M. Quispe" tamano="lg" className="mt-4" />
+              <p className="mt-1 grid grid-cols-2 gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <span className="text-right">La Sexta Calle · 57.0 kg</span>
+                <span>Grinta Fight · 56.8 kg</span>
+              </p>
+              <div className="mt-4 flex items-center justify-between rounded-lg bg-fondo px-3 py-2 text-sm">
+                <span className="text-slate-500 dark:text-slate-400">Hora estimada</span>
+                <span className="font-display text-lg font-semibold tabular-nums">16:42</span>
+              </div>
+              <p className="mt-3 text-center text-xs text-slate-400 dark:text-slate-500">
+                Así lo ve el público, en vivo, sin refrescar.
+              </p>
             </div>
-            <TarjetaPelea roja="J. Zárate" azul="M. Quispe" tamano="lg" className="mt-4" />
-            <p className="mt-1 grid grid-cols-2 gap-2 text-xs text-slate-500 dark:text-slate-400">
-              <span className="text-right">La Sexta Calle · 57.0 kg</span>
-              <span>Grinta Fight · 56.8 kg</span>
-            </p>
-            <div className="mt-4 flex items-center justify-between rounded-lg bg-fondo px-3 py-2 text-sm">
-              <span className="text-slate-500 dark:text-slate-400">Hora estimada</span>
-              <span className="font-display text-lg font-semibold tabular-nums">16:42</span>
-            </div>
-            <p className="mt-3 text-center text-xs text-slate-400 dark:text-slate-500">
-              Así lo ve el público, en vivo, sin refrescar.
-            </p>
           </div>
         </section>
 
@@ -205,41 +221,41 @@ export default function Landing() {
 
         <section className="border-b border-borde bg-panel">
           <div className="mx-auto grid max-w-4xl gap-8 px-6 py-16 sm:grid-cols-2">
-            {problemas.map(([titulo, texto]) => (
-              <div key={titulo}>
+            {problemas.map(([titulo, texto], i) => (
+              <Reveal key={titulo} delay={i * 60}>
                 <h2 className="font-display text-xl font-semibold">{titulo}</h2>
                 <p className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                   {texto}
                 </p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </section>
 
-        <section id="como-funciona" className="mx-auto max-w-3xl scroll-mt-20 px-6 py-16">
-          <h2 className="text-center font-display text-3xl font-semibold">
+        <section id="como-funciona" className="mx-auto max-w-3xl scroll-mt-24 px-6 py-16">
+          <Reveal as="h2" className="text-center font-display text-3xl font-semibold">
             Cómo funciona el día del evento
-          </h2>
+          </Reveal>
           <ol className="mx-auto mt-8 grid max-w-xl gap-4">
             {pasos.map((paso, i) => (
-              <li key={paso} className="flex gap-4">
+              <Reveal key={paso} as="li" delay={i * 80} className="flex gap-4">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 font-display text-base font-semibold text-white dark:bg-slate-100 dark:text-slate-900">
                   {i + 1}
                 </span>
                 <span className="pt-1 text-slate-700 dark:text-slate-300">{paso}</span>
-              </li>
+              </Reveal>
             ))}
           </ol>
         </section>
 
         <section className="border-y border-borde bg-panel">
           <div className="mx-auto max-w-4xl px-6 py-16">
-            <h2 className="text-center font-display text-3xl font-semibold">
+            <Reveal as="h2" className="text-center font-display text-3xl font-semibold">
               Para cualquier deporte de combate
-            </h2>
+            </Reveal>
             <div className="mx-auto mt-8 grid gap-4 sm:grid-cols-2">
-              {disciplinas.map((d) => (
-                <div key={d.nombre} className="rounded-xl border border-borde bg-fondo p-5">
+              {disciplinas.map((d, i) => (
+                <Reveal key={d.nombre} delay={i * 60} className="rounded-xl border border-borde bg-fondo p-5">
                   <h3 className="font-display text-lg font-semibold">{d.nombre}</h3>
                   <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{d.detalle}</p>
                   {"chips" in d && (
@@ -254,23 +270,27 @@ export default function Landing() {
                       ))}
                     </ul>
                   )}
-                </div>
+                </Reveal>
               ))}
             </div>
           </div>
         </section>
 
-        <section id="precios" className="mx-auto max-w-5xl scroll-mt-20 px-6 py-16">
-          <h2 className="text-center font-display text-3xl font-semibold">Precios</h2>
-          <p className="mx-auto mt-2 max-w-md text-center text-slate-600 dark:text-slate-300">
+        <section id="precios" className="mx-auto max-w-5xl scroll-mt-24 px-6 py-16">
+          <Reveal as="h2" className="text-center font-display text-3xl font-semibold">
+            Precios
+          </Reveal>
+          <Reveal as="p" delay={80} className="mx-auto mt-2 max-w-md text-center text-slate-600 dark:text-slate-300">
             En soles, sin letra chica. Empieza gratis y crece cuando lo necesites.
-          </p>
+          </Reveal>
           <div className="mx-auto mt-10 grid max-w-4xl gap-5 sm:grid-cols-3">
-            {planes.map((plan) => (
-              <div
+            {planes.map((plan, i) => (
+              <Reveal
+                as="div"
                 key={plan.nombre}
+                delay={i * 100}
                 className={cn(
-                  "rounded-2xl border p-6",
+                  "rounded-2xl border p-6 transition-transform duration-300 hover:-translate-y-1",
                   plan.destacado
                     ? "border-2 border-slate-900 bg-panel shadow-sm dark:border-white"
                     : "border-borde bg-panel"
@@ -315,17 +335,19 @@ export default function Landing() {
                 >
                   Empezar
                 </Link>
-              </div>
+              </Reveal>
             ))}
           </div>
         </section>
 
         <section id="faq" className="border-t border-borde bg-panel">
-          <div className="mx-auto max-w-2xl scroll-mt-20 px-6 py-16">
-            <h2 className="text-center font-display text-3xl font-semibold">Preguntas frecuentes</h2>
+          <div className="mx-auto max-w-2xl scroll-mt-24 px-6 py-16">
+            <Reveal as="h2" className="text-center font-display text-3xl font-semibold">
+              Preguntas frecuentes
+            </Reveal>
             <div className="mt-8 grid gap-3">
-              {faqs.map((f) => (
-                <details key={f.p} className="group rounded-xl border border-borde bg-fondo p-4">
+              {faqs.map((f, i) => (
+                <Reveal key={f.p} as="details" delay={i * 40} className="accordion-item group rounded-xl border border-borde bg-fondo p-4">
                   <summary className="flex cursor-pointer items-center justify-between gap-4 font-medium marker:content-none">
                     {f.p}
                     <span
@@ -338,7 +360,7 @@ export default function Landing() {
                   <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                     {f.r}
                   </p>
-                </details>
+                </Reveal>
               ))}
             </div>
           </div>
@@ -354,7 +376,7 @@ export default function Landing() {
               Crear mi academia
             </Link>
             <a
-              href={WHATSAPP}
+              href={urlWhatsApp()}
               target="_blank"
               rel="noreferrer"
               className={estilos({ variante: "contorno", tamano: "lg" })}
@@ -365,6 +387,7 @@ export default function Landing() {
         </section>
       </main>
       <FooterLanding />
+      <WhatsAppFab />
     </>
   );
 }

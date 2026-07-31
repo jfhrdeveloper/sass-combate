@@ -71,3 +71,68 @@ h2,
 h3 {
   font-family: var(--font-display), sans-serif;
 }
+
+/* Entrada escalonada del hero de la landing (ver page.tsx): cada elemento
+   lleva esta clase y su propio `animationDelay` inline. Es la única
+   animación al MONTAR de la página — el resto de secciones usa <Reveal>,
+   disparado por scroll. Respeta prefers-reduced-motion más abajo. */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up {
+    animation-duration: 0.01ms;
+  }
+}
+
+/* Subrayado que crece de izquierda a derecha al hover (links del footer) —
+   `scaleX` con `transform-origin: left` en vez de animar `width`, así corre
+   en el compositor y no dispara layout en cada frame. */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
+}
+.link-underline:hover::after {
+  transform: scaleX(1);
+}
+
+/* ====== Acordeón del FAQ (sobre <details>/<summary> nativos) ======
+   `::details-content` es el pseudo-elemento que envuelve el contenido
+   revelado; animar su altura solo es posible con `interpolate-size:
+   allow-keywords`, que habilita transicionar HACIA `auto` (sin eso el
+   navegador no sabe interpolar una palabra clave). Es mejora progresiva: en
+   un navegador sin soporte el acordeón abre y cierra igual, solo que sin
+   animación — no hace falta ninguna clase adicional de respaldo. */
+.accordion-item {
+  interpolate-size: allow-keywords;
+}
+.accordion-item::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition: block-size 0.3s ease, content-visibility 0.3s allow-discrete;
+}
+.accordion-item[open]::details-content {
+  block-size: auto;
+}

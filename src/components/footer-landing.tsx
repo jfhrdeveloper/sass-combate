@@ -1,5 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
+import { ShieldCheck, WifiOff, Ban } from "lucide-react";
+import { EMAIL_SOPORTE, urlWhatsApp } from "@/lib/contacto";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
+
+const CONFIANZA = [
+  { texto: "Datos aislados por academia", icono: ShieldCheck },
+  { texto: "La mesa de control funciona sin internet", icono: WifiOff },
+  { texto: "Cobro por período, sin permanencia", icono: Ban },
+] as const;
 
 const COLUMNAS = [
   {
@@ -28,7 +37,7 @@ const ENLACES_LEGAL = [
 
 export function FooterLanding() {
   return (
-    <footer className="border-t border-borde">
+    <footer id="contacto" className="scroll-mt-24 border-t border-borde">
       <div className="mx-auto grid max-w-5xl gap-8 px-6 py-12 sm:grid-cols-[1.1fr_0.8fr_0.7fr_1.4fr]">
         <div>
           <p className="font-display text-lg font-semibold tracking-tight">sass-combate</p>
@@ -38,20 +47,29 @@ export function FooterLanding() {
           </p>
           <ul className="mt-4 grid gap-1.5 text-sm text-slate-600 dark:text-slate-300">
             <li>
-              <a href="mailto:jfhrdeveloper@gmail.com" className="hover:text-slate-900 dark:hover:text-white">
-                jfhrdeveloper@gmail.com
+              <a href={`mailto:${EMAIL_SOPORTE}`} className="link-underline hover:text-slate-900 dark:hover:text-white">
+                {EMAIL_SOPORTE}
               </a>
             </li>
             <li>
               <a
-                href="https://wa.me/51931314659"
+                href={urlWhatsApp()}
                 target="_blank"
                 rel="noreferrer"
-                className="hover:text-slate-900 dark:hover:text-white"
+                className="link-underline inline-flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white"
               >
-                +51 931 314 659 (WhatsApp)
+                <WhatsAppIcon size={15} className="shrink-0" /> +51 931 314 659
               </a>
             </li>
+          </ul>
+
+          <ul className="mt-5 grid gap-2 text-xs text-slate-500 dark:text-slate-400">
+            {CONFIANZA.map(({ texto, icono: Icono }) => (
+              <li key={texto} className="flex items-start gap-2">
+                <Icono size={14} className="mt-0.5 shrink-0 text-exito" />
+                {texto}
+              </li>
+            ))}
           </ul>
         </div>
 
@@ -63,7 +81,7 @@ export function FooterLanding() {
             <ul className="mt-3 grid gap-2 text-sm text-slate-600 dark:text-slate-300">
               {col.enlaces.map(([texto, href]) => (
                 <li key={href}>
-                  <Link href={href} className="hover:text-slate-900 dark:hover:text-white">
+                  <Link href={href} className="link-underline hover:text-slate-900 dark:hover:text-white">
                     {texto}
                   </Link>
                 </li>
@@ -93,7 +111,7 @@ export function FooterLanding() {
             <ul className="grid gap-2 text-sm text-slate-600 dark:text-slate-300">
               {ENLACES_LEGAL.map(([texto, href]) => (
                 <li key={href}>
-                  <Link href={href} className="hover:text-slate-900 dark:hover:text-white">
+                  <Link href={href} className="link-underline hover:text-slate-900 dark:hover:text-white">
                     {texto}
                   </Link>
                 </li>
