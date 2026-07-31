@@ -115,6 +115,38 @@ const DEMO: Pago[] = [
   },
 ];
 
+export interface PuntoIngreso {
+  etiqueta: string;
+  fecha: string;
+  monto: number;
+}
+
+/** Suma de pagos `aprobado` por día, últimos 7 días (hoy incluido). Solo lo
+ *  aprobado cuenta como ingreso real — en_revision/rechazado no. */
+export function resumenIngresos7Dias(pagos: Pago[]): PuntoIngreso[] {
+  const dias: PuntoIngreso[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() - i);
+    const clave = fecha.toISOString().slice(0, 10);
+    dias.push({
+      etiqueta: fecha.toLocaleDateString("es-PE", { weekday: "short" }).replace(".", ""),
+      fecha: clave,
+      monto: 0,
+    });
+  }
+
+  const porFecha = new Map(dias.map((d) => [d.fecha, d]));
+  for (const pago of pagos) {
+    if (pago.estado !== "aprobado") continue;
+    const clave = pago.creado_en.slice(0, 10);
+    const punto = porFecha.get(clave);
+    if (punto) punto.monto += pago.monto;
+  }
+
+  return dias;
+}
+
 export async function listarPagos(): Promise<Pago[]> {
   if (!HAY_SUPABASE) return DEMO;
 

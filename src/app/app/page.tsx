@@ -5,9 +5,11 @@ import { estilos } from "@/components/ui/button";
 import { Paginador } from "@/components/ui/paginador";
 import { exigirAcademia } from "@/services/auth";
 import { listarEventos } from "@/services/consultas";
+import { listarPagos, resumenIngresos7Dias } from "@/services/pagos";
 import { fechaLarga } from "@/utils/format";
 import { cn } from "@/utils/cn";
 import { paginar } from "@/lib/paginacion";
+import { GraficoIngresos } from "./grafico-ingresos";
 
 export default async function VistaGeneral({
   searchParams,
@@ -21,6 +23,11 @@ export default async function VistaGeneral({
 
   const proximos = eventos.filter((e) => e.estado !== "finalizado");
   const pasados = eventos.filter((e) => e.estado === "finalizado");
+
+  // Solo dueño/admin ven facturación — mesa/coach/juez/lector no deben ver
+  // montos de la academia (mismo criterio de nav-app.ts para /app/pagos).
+  const veIngresos = academia.rol === "dueno" || academia.rol === "admin";
+  const ingresos = veIngresos ? resumenIngresos7Dias(await listarPagos()) : null;
 
   return (
     <main className="mx-auto max-w-5xl p-6">
@@ -47,6 +54,12 @@ export default async function VistaGeneral({
           </Tarjeta>
         </Link>
       </section>
+
+      {ingresos && (
+        <section className="mt-6">
+          <GraficoIngresos datos={ingresos} />
+        </section>
+      )}
 
       {eventos.length === 0 ? (
         <div className="mt-8 rounded-xl border border-dashed border-borde p-10 text-center">

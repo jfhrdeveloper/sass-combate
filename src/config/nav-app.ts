@@ -1,4 +1,4 @@
-import { Trophy, Users, Building2, Wallet, UserCog, CreditCard, type LucideIcon } from "lucide-react";
+import { Trophy, Users, Building2, Wallet, UserCog, CreditCard, History, type LucideIcon } from "lucide-react";
 import type { Rol } from "./roles";
 
 export interface ItemNavApp {
@@ -25,6 +25,7 @@ export const NAV_APP: ItemNavApp[] = [
   { href: "/app/pagos", label: "Pagos", icon: Wallet, roles: ["dueno", "admin"] },
   { href: "/app/equipo", label: "Equipo", icon: UserCog, roles: ["dueno", "admin"] },
   { href: "/app/plan", label: "Plan", icon: CreditCard, roles: ["dueno", "admin"] },
+  { href: "/app/auditoria", label: "Auditoría", icon: History, roles: ["dueno", "admin"] },
 ];
 
 export function navParaRol(rol: Rol): ItemNavApp[] {

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Insignia } from "@/components/ui/badge";
-import { TarjetaPelea } from "@/components/ui/tarjeta-pelea";
 import { obtenerAgendaPublica } from "@/services/publico";
-import { construirAgenda, formatearRetraso } from "@/lib/horarios";
-import { fechaLarga, hora } from "@/utils/format";
+import { construirAgenda } from "@/lib/horarios";
+import { fechaLarga } from "@/utils/format";
 import { urlEvento } from "@/lib/seo";
+import { AgendaConBusqueda } from "./agenda-con-busqueda";
+import { LlaveArbol } from "./llave-arbol";
+import { BotonPantallaCompleta } from "@/components/boton-pantalla-completa";
 
 type Params = { org: string; evento: string };
 
@@ -54,6 +55,12 @@ export default async function PaginaPublica({
   const { areas, peleas, bloques } = agenda;
   const agendas = construirAgenda(areas, peleas, bloques);
 
+  const llaves = new Map<string, typeof peleas>();
+  for (const p of peleas) {
+    if (p.tipo !== "bracket" || !p.llave_id) continue;
+    llaves.set(p.llave_id, [...(llaves.get(p.llave_id) ?? []), p]);
+  }
+
   const primeraHora = areas.reduce(
     (min, a) => (a.hora_inicio < min ? a.hora_inicio : min),
     areas[0]?.hora_inicio ?? agenda.evento.fecha
@@ -86,50 +93,24 @@ export default async function PaginaPublica({
         {fechaLarga(agenda.evento.fecha)} · {agenda.evento.sede}
       </p>
 
-      {agendas.map((ag) => (
-        <section key={ag.area.id} className="mt-8">
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-lg font-medium">{ag.area.nombre}</h2>
-            <span className="text-sm text-slate-500">{formatearRetraso(ag.retrasoSeg)}</span>
+      {llaves.size > 0 && (
+        <section className="mt-8">
+          <h2 className="text-lg font-medium">Llave de eliminación</h2>
+          <div className="mt-3 grid gap-6">
+            {[...llaves.values()].map((deLaLlave) => (
+              <LlaveArbol key={deLaLlave[0].llave_id} peleas={deLaLlave} />
+            ))}
           </div>
-          <ul className="mt-3 grid gap-2">
-            {ag.filas.map((f) => {
-              if (f.tipo === "bloque") {
-                return (
-                  <li
-                    key={f.id}
-                    className="rounded-lg border border-borde bg-aviso-suave px-3 py-2 text-sm text-aviso-fuerte"
-                  >
-                    {hora(f.inicio)} · {f.nombre}
-                  </li>
-                );
-              }
-              const p = peleas.find((x) => x.id === f.id)!;
-              return (
-                <li
-                  key={f.id}
-                  className="flex items-center gap-3 rounded-lg border border-borde bg-panel px-3 py-2"
-                >
-                  <span className="w-14 shrink-0 font-display tabular-nums text-slate-600">
-                    {hora(f.inicio)}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <TarjetaPelea roja={p.roja ?? undefined} azul={p.azul ?? undefined} tamano="sm" />
-                    <span className="block text-center text-xs text-slate-500">
-                      {p.club_roja} · {p.club_azul}
-                    </span>
-                  </span>
-                  <Insignia estado={f.estado ?? "pendiente"} />
-                </li>
-              );
-            })}
-          </ul>
         </section>
-      ))}
+      )}
+
+      <AgendaConBusqueda agendas={agendas} peleas={peleas} />
 
       <p className="mt-8 text-center text-xs text-slate-400">
         Horarios estimados. Esta página se actualiza sola.
       </p>
+
+      <BotonPantallaCompleta />
     </main>
   );
 }

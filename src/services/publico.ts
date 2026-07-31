@@ -41,6 +41,73 @@ export interface AgendaPublica {
   bloques: Bloque[];
 }
 
+/**
+ * Llave de ejemplo (eliminación directa, 4 cupos) — solo para mostrar el
+ * árbol en modo demo. No participa de `construirAgenda()` (`area_id: null`,
+ * la función ya ignora cualquier pelea sin área que coincida — ver
+ * horarios.ts), así que no afecta el cronograma en cascada de ninguna otra
+ * pantalla. Semifinal 1 ya resuelta y avanzada a la final; semifinal 2 y la
+ * final, pendientes — el estado más representativo de una llave a mitad de
+ * evento.
+ */
+function peleasLlaveDemo(): PeleaPublica[] {
+  const base: Omit<PeleaPublica, "id" | "roja_id" | "azul_id" | "ronda" | "posicion" | "estado" | "roja" | "club_roja" | "azul" | "club_azul"> = {
+    area_id: null,
+    orden: null,
+    rounds: 3,
+    duracion_round_seg: 120,
+    descanso_seg: 60,
+    hora_estimada: null,
+    hora_inicio_real: null,
+    hora_fin_real: null,
+    tipo: "bracket",
+    llave_id: "llave-demo",
+  };
+  const nombrar = (id: string | null) => inscripcionPorId(id);
+
+  return [
+    {
+      ...base,
+      id: "llave-demo-r1-1",
+      ronda: 1,
+      posicion: 1,
+      roja_id: "ins-1",
+      azul_id: "ins-2",
+      estado: "finalizada",
+      roja: nombrar("ins-1")?.nombre ?? null,
+      club_roja: nombrar("ins-1")?.club ?? null,
+      azul: nombrar("ins-2")?.nombre ?? null,
+      club_azul: nombrar("ins-2")?.club ?? null,
+    },
+    {
+      ...base,
+      id: "llave-demo-r1-2",
+      ronda: 1,
+      posicion: 2,
+      roja_id: "ins-3",
+      azul_id: "ins-4",
+      estado: "pendiente",
+      roja: nombrar("ins-3")?.nombre ?? null,
+      club_roja: nombrar("ins-3")?.club ?? null,
+      azul: nombrar("ins-4")?.nombre ?? null,
+      club_azul: nombrar("ins-4")?.club ?? null,
+    },
+    {
+      ...base,
+      id: "llave-demo-r2-1",
+      ronda: 2,
+      posicion: 1,
+      roja_id: "ins-1",
+      azul_id: null,
+      estado: "pendiente",
+      roja: nombrar("ins-1")?.nombre ?? null,
+      club_roja: nombrar("ins-1")?.club ?? null,
+      azul: null,
+      club_azul: null,
+    },
+  ];
+}
+
 function agendaDemo(): AgendaPublica {
   const peleas: PeleaPublica[] = PELEAS_DEMO.map((p) => {
     const roja = inscripcionPorId(p.roja_id);
@@ -53,7 +120,12 @@ function agendaDemo(): AgendaPublica {
       club_azul: azul?.club ?? null,
     };
   });
-  return { evento: EVENTO_DEMO, areas: AREAS_DEMO, peleas, bloques: BLOQUES_DEMO };
+  return {
+    evento: EVENTO_DEMO,
+    areas: AREAS_DEMO,
+    peleas: [...peleas, ...peleasLlaveDemo()],
+    bloques: BLOQUES_DEMO,
+  };
 }
 
 /** Resuelve org+evento (slugs de la URL) a un evento público real, o null si no existe/no es público. */
@@ -82,7 +154,7 @@ export async function obtenerAgendaPublica(
     supabase
       .from("v_publico_pelea")
       .select(
-        "id, area_id, orden, roja_id, azul_id, rounds, duracion_round_seg, descanso_seg, estado, hora_estimada, hora_inicio_real, hora_fin_real, roja, club_roja, azul, club_azul"
+        "id, area_id, orden, roja_id, azul_id, rounds, duracion_round_seg, descanso_seg, estado, hora_estimada, hora_inicio_real, hora_fin_real, roja, club_roja, azul, club_azul, tipo, llave_id, ronda, posicion"
       )
       .eq("evento_id", evento.id)
       .order("orden"),

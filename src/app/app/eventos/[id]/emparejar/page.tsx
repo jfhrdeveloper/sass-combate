@@ -6,12 +6,19 @@ import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
 import { TarjetaPelea } from "@/components/ui/tarjeta-pelea";
 import { INSCRIPCIONES_DEMO } from "@/lib/datos";
 import { REGLAS_POR_DEFECTO, emparejar, type Cruce } from "@/lib/emparejador";
-import { NOMBRE_MODALIDAD } from "@/types";
+import { NOMBRE_MODALIDAD, type Inscripcion } from "@/types";
 import { kg } from "@/utils/format";
+
+interface ParManual {
+  a: Inscripcion;
+  b: Inscripcion;
+}
 
 export default function PaginaEmparejar() {
   const [reglas, setReglas] = useState(REGLAS_POR_DEFECTO);
   const [aceptados, setAceptados] = useState<Record<string, "si" | "no">>({});
+  const [manuales, setManuales] = useState<ParManual[]>([]);
+  const [arrastrando, setArrastrando] = useState<string | null>(null);
 
   const resultado = useMemo(
     () => emparejar(INSCRIPCIONES_DEMO, reglas),
@@ -20,6 +27,30 @@ export default function PaginaEmparejar() {
 
   const clave = (c: Cruce) => `${c.a.id}-${c.b.id}`;
   const confirmadas = resultado.parejas.filter((c) => aceptados[clave(c)] === "si").length;
+
+  const idsEnManual = new Set(manuales.flatMap((p) => [p.a.id, p.b.id]));
+  const sinRivalRestantes = resultado.sinRival.filter((i) => !idsEnManual.has(i.id));
+
+  /**
+   * Arrastrar un "sin rival" sobre otro los empareja a mano — el único caso
+   * donde drag-and-drop aporta sobre aceptar/descartar: acá no hay ninguna
+   * propuesta del motor que aceptar, es intervención manual pura. El resto
+   * de la pantalla (propuestas del algoritmo) sigue con botones a propósito,
+   * ver docs/pending-task.md.
+   */
+  function soltar(e: React.DragEvent, destino: Inscripcion) {
+    e.preventDefault();
+    const origenId = e.dataTransfer.getData("text/plain");
+    setArrastrando(null);
+    if (!origenId || origenId === destino.id) return;
+    const origen = resultado.sinRival.find((i) => i.id === origenId);
+    if (!origen) return;
+    setManuales((prev) => [...prev, { a: origen, b: destino }]);
+  }
+
+  function deshacerManual(par: ParManual) {
+    setManuales((prev) => prev.filter((p) => p !== par));
+  }
 
   return (
     <main className="mx-auto max-w-5xl p-6">
@@ -43,8 +74,8 @@ export default function PaginaEmparejar() {
         </Tarjeta>
         <Tarjeta>
           <TarjetaTitulo>Sin rival</TarjetaTitulo>
-          <TarjetaDato className={resultado.sinRival.length ? "text-roja" : ""}>
-            {resultado.sinRival.length}
+          <TarjetaDato className={sinRivalRestantes.length ? "text-roja" : ""}>
+            {sinRivalRestantes.length}
           </TarjetaDato>
         </Tarjeta>
       </section>
@@ -147,15 +178,61 @@ export default function PaginaEmparejar() {
         })}
       </ul>
 
-      {resultado.sinRival.length > 0 && (
+      {manuales.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-lg font-medium">Emparejamientos manuales</h2>
+          <p className="text-sm text-slate-500">
+            Armados a mano arrastrando peleadores de &ldquo;sin rival&rdquo; — el motor no los propuso.
+          </p>
+          <ul className="mt-3 grid gap-2">
+            {manuales.map((par) => (
+              <li
+                key={`${par.a.id}-${par.b.id}`}
+                className="rounded-xl border border-exito bg-panel p-3"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <TarjetaPelea roja={par.a.nombre} azul={par.b.nombre} tamano="sm" />
+                    <p className="mt-1 text-center text-xs text-slate-500">
+                      {par.a.club} {kg(par.a.peso_pesaje)} · {par.b.club} {kg(par.b.peso_pesaje)}
+                    </p>
+                  </div>
+                  <Boton tamano="sm" variante="fantasma" onClick={() => deshacerManual(par)}>
+                    Deshacer
+                  </Boton>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {sinRivalRestantes.length > 0 && (
         <section className="mt-8">
           <h2 className="text-lg font-medium">Sin rival</h2>
           <p className="text-sm text-slate-500">
-            Hay que bajar tolerancias, fusionar categorías o avisar al coach.
+            Hay que bajar tolerancias, fusionar categorías, avisar al coach — o arrastrar dos
+            peleadores entre sí para emparejarlos a mano.
           </p>
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-            {resultado.sinRival.map((i) => (
-              <li key={i.id} className="rounded-lg border border-borde bg-panel px-3 py-2 text-sm">
+            {sinRivalRestantes.map((i) => (
+              <li
+                key={i.id}
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData("text/plain", i.id);
+                  e.dataTransfer.effectAllowed = "move";
+                  setArrastrando(i.id);
+                }}
+                onDragEnd={() => setArrastrando(null)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => soltar(e, i)}
+                className={`cursor-grab rounded-lg border border-borde bg-panel px-3 py-2 text-sm transition-colors active:cursor-grabbing ${
+                  arrastrando && arrastrando !== i.id
+                    ? "border-dashed border-exito bg-exito-suave/40"
+                    : ""
+                }`}
+              >
                 <span className="font-medium">{i.nombre}</span>
                 <span className="block text-xs text-slate-500">
                   {i.club} · {kg(i.peso_pesaje)} · {i.edad ?? "sin edad"} ·{" "}

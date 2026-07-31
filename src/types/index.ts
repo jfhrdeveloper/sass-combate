@@ -87,6 +87,12 @@ export interface Pelea {
   hora_estimada: string | null;
   hora_inicio_real: string | null;
   hora_fin_real: string | null;
+  /** Eliminación directa (MMA), a diferencia de 'pactado' (el resto de disciplinas
+   *  vía el emparejador). `llave_id`/`ronda`/`posicion` solo aplican cuando es 'bracket'. */
+  tipo?: "pactado" | "bracket";
+  llave_id?: string | null;
+  ronda?: number | null;
+  posicion?: number | null;
 }
 
 export interface Bloque {

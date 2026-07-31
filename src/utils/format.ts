@@ -11,6 +11,10 @@ export function fechaLarga(fecha: Date | string): string {
   return formatInTimeZone(new Date(fecha), ZONA, "dd/MM/yyyy");
 }
 
+export function fechaHora(fecha: Date | string): string {
+  return formatInTimeZone(new Date(fecha), ZONA, "dd/MM/yyyy HH:mm");
+}
+
 export function edadA(nacimiento: string | null, referencia: Date | string): number | null {
   if (!nacimiento) return null;
   const n = new Date(nacimiento);
