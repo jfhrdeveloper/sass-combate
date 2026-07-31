@@ -1,8 +1,67 @@
-node_modules
-.next
-out
-.env
-.env.local
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+Thumbs.db
+*.pem
+
+# editores
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# logs
+*.log
+
+# playwright: se instala ad-hoc en algunas sesiones para verificar cambios
+# visuales (ver docs/pending-task.md), no es dependencia del proyecto
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+# .env.example es la única referencia versionada de qué variables necesita
+# el proyecto — nunca lleva secretos reales, solo placeholders/comentarios.
+!.env.example
+
+# vercel
+.vercel
+
+# claude code: configuración/worktrees locales, no compartidos entre máquinas
+.claude/settings.local.json
+.claude/worktrees/
+
+# imágenes de referencia de diseño (capturas de terceros/WhatsApp, no assets
+# propios del proyecto — sin licencia clara para versionar)
+/diseno-referencia
+
+# typescript
 *.tsbuildinfo
 next-env.d.ts
-coverage
