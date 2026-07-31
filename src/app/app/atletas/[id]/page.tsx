@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
-import { historialVisible, obtenerAtleta } from "@/lib/atletas";
+import { historialVisible, obtenerAtleta } from "@/services/atletas";
 import { ETIQUETA_NIVEL, nivelPorPeleas } from "@/lib/nivel";
-import { fechaLarga, kg } from "@/lib/format";
+import { fechaLarga, kg } from "@/utils/format";
 import { AgregarPeleaExterna } from "./agregar";
 
 const COLOR: Record<string, string> = {

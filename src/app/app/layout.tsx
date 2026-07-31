@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { exigirAcademia, ROLES } from "@/lib/auth";
-import { salir, cambiarRolDemo } from "@/app/acciones";
+import { exigirAcademia, ROLES } from "@/services/auth";
+import { salir, cambiarRolDemo } from "@/actions/cuenta";
 import { HAY_SUPABASE } from "@/lib/datos";
 import { AppShell } from "@/components/app-shell";
 

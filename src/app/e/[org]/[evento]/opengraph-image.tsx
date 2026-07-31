@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { EVENTO_DEMO, HAY_SUPABASE } from "@/lib/datos";
-import { fechaLarga } from "@/lib/format";
+import { fechaLarga } from "@/utils/format";
 import { desdeSlug } from "@/lib/seo";
 
 export const size = { width: 1200, height: 630 };

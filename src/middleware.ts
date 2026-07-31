@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { envPublico } from "@/config/env";
 
 const RESERVADOS = new Set([
   "www", "app", "api", "admin", "docs", "blog", "mail", "staging", "soporte",
@@ -11,8 +12,8 @@ const SOLO_ANONIMO = ["/entrar", "/registro"];
 export async function middleware(req: NextRequest) {
   let res = NextResponse.next({ request: req });
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = envPublico.NEXT_PUBLIC_SUPABASE_URL;
+  const key = envPublico.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const ruta = req.nextUrl.pathname;
 
   // Sin Supabase configurado el proyecto corre en modo demo y no hay sesion que validar.
@@ -51,7 +52,7 @@ export async function middleware(req: NextRequest) {
    * en las politicas RLS de Postgres, nunca en el host.
    */
   const host = req.headers.get("host") ?? "";
-  const raiz = process.env.NEXT_PUBLIC_DOMINIO_RAIZ ?? "localhost:3000";
+  const raiz = envPublico.NEXT_PUBLIC_DOMINIO_RAIZ;
 
   if (host.endsWith(raiz) && host !== raiz) {
     const sub = host.slice(0, host.length - raiz.length - 1);

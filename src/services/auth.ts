@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { crearClienteServidor } from "./supabase/server";
-import { HAY_SUPABASE } from "./datos";
-import { ROLES, COOKIE_ROL_DEMO, CUENTAS_DEMO, type Rol, type CuentaDemo } from "./roles";
+import { crearClienteServidor } from "@/lib/supabase/server";
+import { HAY_SUPABASE } from "@/lib/datos";
+import { ROLES, COOKIE_ROL_DEMO, CUENTAS_DEMO, type Rol, type CuentaDemo } from "@/config/roles";
 
 export { ROLES, COOKIE_ROL_DEMO, CUENTAS_DEMO };
 export type { Rol, CuentaDemo };

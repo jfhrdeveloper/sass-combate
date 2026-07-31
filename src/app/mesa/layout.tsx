@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { misAcademias, puede, sesionActual } from "@/lib/auth";
+import { misAcademias, puede, sesionActual } from "@/services/auth";
 
 /**
  * La mesa registra resultados, así que exige rol de mesa o superior.

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { crearClienteServicio } from "@/lib/supabase/admin";
-import { CULQI_CONFIGURADO, crearCargoCulqi } from "@/lib/pagos/culqi";
+import { CULQI_CONFIGURADO, crearCargoCulqi } from "@/services/pagos/culqi";
 import { HAY_SUPABASE } from "@/lib/datos";
 
 /**

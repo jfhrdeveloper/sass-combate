@@ -1,5 +1,5 @@
-import { crearClienteServidor } from "./supabase/server";
-import { crearClienteServicio } from "./supabase/admin";
+import { crearClienteServidor } from "@/lib/supabase/server";
+import { crearClienteServicio } from "@/lib/supabase/admin";
 import {
   AREAS_DEMO,
   BLOQUES_DEMO,
@@ -7,9 +7,9 @@ import {
   HAY_SUPABASE,
   PELEAS_DEMO,
   inscripcionPorId,
-} from "./datos";
-import { construirAgenda } from "./horarios";
-import type { Area, Bloque, ModalidadCodigo, Pelea } from "./types";
+} from "@/lib/datos";
+import { construirAgenda } from "@/lib/horarios";
+import type { Area, Bloque, ModalidadCodigo, Pelea } from "@/types";
 
 /**
  * Capa de datos de las páginas públicas (/e/[org]/[evento] y /p/[token]): sin

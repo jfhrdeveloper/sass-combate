@@ -1,7 +1,7 @@
-import { exigirAcademia } from "@/lib/auth";
+import { exigirAcademia } from "@/services/auth";
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
-import { fechaLarga } from "@/lib/format";
-import { listarHistorialPlanes } from "@/lib/consultas";
+import { fechaLarga } from "@/utils/format";
+import { listarHistorialPlanes } from "@/services/consultas";
 import { SelectorPlan } from "./selector-plan";
 
 const NOMBRE_TIPO = {

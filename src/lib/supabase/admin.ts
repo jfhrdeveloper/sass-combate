@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { envPublico, envServidor } from "@/config/env";
 
 /**
  * Cliente con `service_role`: ignora RLS. Reservado a rutas de servidor que
@@ -8,8 +9,8 @@ import { createClient } from "@supabase/supabase-js";
  */
 export function crearClienteServicio() {
   return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    envPublico.NEXT_PUBLIC_SUPABASE_URL!,
+    envServidor.SUPABASE_SERVICE_ROLE_KEY!,
     { auth: { autoRefreshToken: false, persistSession: false } }
   );
 }

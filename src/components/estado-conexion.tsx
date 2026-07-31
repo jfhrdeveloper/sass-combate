@@ -1,6 +1,6 @@
 "use client";
 
-import type { EstadoSync } from "@/lib/offline/sincronizacion";
+import type { EstadoSync } from "@/hooks/use-sincronizacion";
 
 const ESTILOS: Record<EstadoSync, { fondo: string; texto: string; punto: string }> = {
   sin_conexion: {

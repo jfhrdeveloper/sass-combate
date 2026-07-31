@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { registrarPeleaExterna, type EstadoFormulario } from "@/app/acciones";
+import { registrarPeleaExterna, type EstadoFormulario } from "@/actions/atletas";
 import { Aviso, BotonEnvio } from "@/components/ui/formulario";
 import { Campo } from "@/components/ui/input";
 

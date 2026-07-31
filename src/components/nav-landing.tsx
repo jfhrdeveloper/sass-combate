@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { estilos } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/cn";
 
 const ENLACES = [
   { href: "/#inicio", label: "Inicio", id: "inicio" },

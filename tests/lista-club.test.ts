@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { analizarLista, separarValidas } from "@/lib/lista-club";
+import { analizarLista, separarValidas } from "@/utils/lista-club";
 
 const BUENA = "Jamil Zarate\t70123456\t2011-03-14\tM\t57\tlow_kick";
 

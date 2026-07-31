@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Insignia } from "@/components/ui/badge";
 import { TarjetaPelea } from "@/components/ui/tarjeta-pelea";
-import { obtenerAgendaPublica } from "@/lib/publico";
+import { obtenerAgendaPublica } from "@/services/publico";
 import { construirAgenda, formatearRetraso } from "@/lib/horarios";
-import { fechaLarga, hora } from "@/lib/format";
+import { fechaLarga, hora } from "@/utils/format";
 import { urlEvento } from "@/lib/seo";
 
 type Params = { org: string; evento: string };

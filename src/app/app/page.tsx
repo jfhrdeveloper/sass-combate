@@ -3,10 +3,10 @@ import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
 import { Insignia } from "@/components/ui/badge";
 import { estilos } from "@/components/ui/button";
 import { Paginador } from "@/components/ui/paginador";
-import { exigirAcademia } from "@/lib/auth";
-import { listarEventos } from "@/lib/consultas";
-import { fechaLarga } from "@/lib/format";
-import { cn } from "@/lib/utils";
+import { exigirAcademia } from "@/services/auth";
+import { listarEventos } from "@/services/consultas";
+import { fechaLarga } from "@/utils/format";
+import { cn } from "@/utils/cn";
 import { paginar } from "@/lib/paginacion";
 
 export default async function VistaGeneral({

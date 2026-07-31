@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { revisarPago, type EstadoFormulario } from "@/app/acciones";
+import { revisarPago, type EstadoFormulario } from "@/actions/pagos";
 import { Aviso } from "@/components/ui/formulario";
 import { Boton } from "@/components/ui/button";
 import { Campo } from "@/components/ui/input";

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
-import { academiasDePlataforma } from "@/lib/auth";
-import { fechaLarga } from "@/lib/format";
+import { academiasDePlataforma } from "@/services/auth";
+import { fechaLarga } from "@/utils/format";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 

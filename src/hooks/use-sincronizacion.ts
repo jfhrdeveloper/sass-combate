@@ -10,7 +10,7 @@ import {
   pendientes,
   type Operacion,
   type TipoOperacion,
-} from "./db";
+} from "@/services/offline-db";
 
 export type EstadoSync = "sin_conexion" | "sincronizando" | "sincronizado" | "con_errores";
 

@@ -1,7 +1,8 @@
-import type { Area, Bloque, Inscripcion, Pelea } from "./types";
+import { envPublico } from "@/config/env";
+import type { Area, Bloque, Inscripcion, Pelea } from "@/types";
 
 export const HAY_SUPABASE = Boolean(
-  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  envPublico.NEXT_PUBLIC_SUPABASE_URL && envPublico.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
 export interface Evento {

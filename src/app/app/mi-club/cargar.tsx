@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
-import { useSincronizacion } from "@/lib/offline/sincronizacion";
+import { useSincronizacion } from "@/hooks/use-sincronizacion";
 import { EstadoConexion } from "@/components/estado-conexion";
 import { Aviso } from "@/components/ui/formulario";
 import { Boton } from "@/components/ui/button";
-import { analizarLista, separarValidas } from "@/lib/lista-club";
+import { analizarLista, separarValidas } from "@/utils/lista-club";
 
 const EJEMPLO = `Jamil Zarate\t70123456\t2011-03-14\tM\t57\tlow_kick
 Erika Saenz\t70987654\t2004-09-02\tF\t56.6\tlow_kick`;

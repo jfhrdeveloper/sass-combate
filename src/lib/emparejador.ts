@@ -1,4 +1,4 @@
-import type { Inscripcion, ModalidadCodigo } from "./types";
+import type { Inscripcion, ModalidadCodigo } from "@/types";
 
 export interface ReglasEmparejamiento {
   maxDifPesoPct: number;

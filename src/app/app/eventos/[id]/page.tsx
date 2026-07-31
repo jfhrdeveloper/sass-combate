@@ -9,10 +9,10 @@ import {
   obtenerEvento,
   obtenerInscripciones,
   obtenerPeleas,
-} from "@/lib/consultas";
+} from "@/services/consultas";
 import { construirAgenda, formatearRetraso } from "@/lib/horarios";
-import { hora, kg } from "@/lib/format";
-import { exigirAcademia } from "@/lib/auth";
+import { hora, kg } from "@/utils/format";
+import { exigirAcademia } from "@/services/auth";
 import { planEstaActivo } from "@/lib/planes";
 import { DesbloquearEvento } from "./desbloquear";
 

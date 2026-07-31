@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { entrar, entrarConGoogle, cambiarRolDemo, type EstadoFormulario } from "@/app/acciones";
+import { entrar, entrarConGoogle, cambiarRolDemo, type EstadoFormulario } from "@/actions/cuenta";
 import { Aviso, BotonEnvio } from "@/components/ui/formulario";
 import { Campo } from "@/components/ui/input";
 import { Boton } from "@/components/ui/button";
 import { HAY_SUPABASE } from "@/lib/datos";
-import { CUENTAS_DEMO } from "@/lib/roles";
+import { CUENTAS_DEMO } from "@/config/roles";
 
 function Formulario() {
   const params = useSearchParams();

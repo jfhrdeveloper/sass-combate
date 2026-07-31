@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { urlWhatsApp } from "@/lib/contacto";
+import { urlWhatsApp } from "@/config/contacto";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 
 /**

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { crearClienteServidor } from "@/lib/supabase/server";
-import { CULQI_CONFIGURADO, crearCargoCulqi } from "@/lib/pagos/culqi";
+import { CULQI_CONFIGURADO, crearCargoCulqi } from "@/services/pagos/culqi";
 import { HAY_SUPABASE } from "@/lib/datos";
 import { PRECIO_EVENTO_SOLES, DIAS_EVENTO } from "@/lib/planes";
 

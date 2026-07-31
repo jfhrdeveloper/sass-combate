@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ShieldCheck, WifiOff, Ban } from "lucide-react";
-import { EMAIL_SOPORTE, urlWhatsApp } from "@/lib/contacto";
+import { EMAIL_SOPORTE, urlWhatsApp } from "@/config/contacto";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 
 const CONFIANZA = [

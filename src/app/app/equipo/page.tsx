@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { invitarMiembro, type EstadoFormulario } from "@/app/acciones";
+import { invitarMiembro, type EstadoFormulario } from "@/actions/academia";
 import { Aviso, BotonEnvio } from "@/components/ui/formulario";
 import { Campo } from "@/components/ui/input";
 

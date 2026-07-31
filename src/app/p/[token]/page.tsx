@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { obtenerCredencialPorToken } from "@/lib/publico";
-import { hora, kg } from "@/lib/format";
-import { NOMBRE_MODALIDAD } from "@/lib/types";
+import { obtenerCredencialPorToken } from "@/services/publico";
+import { hora, kg } from "@/utils/format";
+import { NOMBRE_MODALIDAD } from "@/types";
 import { TarjetaPelea } from "@/components/ui/tarjeta-pelea";
 import { ActivarNotificaciones } from "./activar-notificaciones";
 

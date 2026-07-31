@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { registrarse, entrarConGoogle, type EstadoFormulario } from "@/app/acciones";
+import { registrarse, entrarConGoogle, type EstadoFormulario } from "@/actions/cuenta";
 import { Aviso, BotonEnvio } from "@/components/ui/formulario";
 import { Campo } from "@/components/ui/input";
 import { Boton } from "@/components/ui/button";

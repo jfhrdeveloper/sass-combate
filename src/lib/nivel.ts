@@ -1,4 +1,4 @@
-import type { Nivel } from "./types";
+import type { Nivel } from "@/types";
 
 /** Cortes de las bases WAKO, en el mismo orden que la función SQL nivel_por_peleas. */
 const CORTES: Array<[number, Nivel]> = [

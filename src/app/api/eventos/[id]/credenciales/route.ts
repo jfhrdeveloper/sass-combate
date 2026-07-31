@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { generarCredenciales, type Credencial } from "@/lib/pdf/documentos";
 import { EVENTO_DEMO, INSCRIPCIONES_DEMO, HAY_SUPABASE } from "@/lib/datos";
 import { crearClienteServidor } from "@/lib/supabase/server";
-import { NOMBRE_MODALIDAD } from "@/lib/types";
+import { NOMBRE_MODALIDAD } from "@/types";
 
 export const maxDuration = 60;
 

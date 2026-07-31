@@ -4,6 +4,7 @@ import { useState } from "react";
 import Script from "next/script";
 import { Boton } from "@/components/ui/button";
 import { Aviso } from "@/components/ui/formulario";
+import { envPublico } from "@/config/env";
 
 declare global {
   interface Window {
@@ -19,7 +20,7 @@ declare global {
   }
 }
 
-const CLAVE_PUBLICA = process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY;
+const CLAVE_PUBLICA = envPublico.NEXT_PUBLIC_CULQI_PUBLIC_KEY;
 
 const OPCIONES = [
   { clave: "academia_mes", nombre: "Academia · mensual", monto: 299 },

@@ -1,4 +1,4 @@
-import { crearClienteServidor } from "./supabase/server";
+import { crearClienteServidor } from "@/lib/supabase/server";
 import {
   AREAS_DEMO,
   BLOQUES_DEMO,
@@ -7,8 +7,8 @@ import {
   INSCRIPCIONES_DEMO,
   PELEAS_DEMO,
   type Evento,
-} from "./datos";
-import type { Area, Bloque, Inscripcion, Pelea } from "./types";
+} from "@/lib/datos";
+import type { Area, Bloque, Inscripcion, Pelea } from "@/types";
 
 /**
  * Cada consulta pide solo su propia tabla y confía en RLS para el filtrado por

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { construirAgenda, formatearRetraso, proximasPeleas } from "@/lib/horarios";
-import type { Area, Bloque, Pelea } from "@/lib/types";
+import type { Area, Bloque, Pelea } from "@/types";
 
 const INICIO = "2026-07-25T14:00:00.000Z";
 

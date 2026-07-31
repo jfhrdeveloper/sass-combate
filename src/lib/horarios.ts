@@ -1,6 +1,6 @@
 import { addSeconds, differenceInSeconds } from "date-fns";
-import type { Area, Bloque, Pelea } from "./types";
-import { duracionPelea } from "./types";
+import type { Area, Bloque, Pelea } from "@/types";
+import { duracionPelea } from "@/types";
 
 export interface FilaAgenda {
   tipo: "pelea" | "bloque";

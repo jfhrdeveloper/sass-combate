@@ -4,10 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, LogOut } from "lucide-react";
-import { navParaRol, esRutaActiva } from "@/lib/nav-app";
+import { navParaRol, esRutaActiva } from "@/config/nav-app";
 import { SelectorRolDemo } from "@/components/selector-rol-demo";
-import { cn } from "@/lib/utils";
-import type { Rol } from "@/lib/roles";
+import { cn } from "@/utils/cn";
+import type { Rol } from "@/config/roles";
 
 /** Los primeros 4 van fijos en la barra; el resto vive detrás de "Más". */
 const PRIMARIOS = 4;

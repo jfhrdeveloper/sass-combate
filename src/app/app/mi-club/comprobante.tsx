@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { registrarPago, type EstadoFormulario } from "@/app/acciones";
+import { registrarPago, type EstadoFormulario } from "@/actions/pagos";
 import { Aviso, BotonEnvio } from "@/components/ui/formulario";
 import { Campo } from "@/components/ui/input";
 import { PagoTarjeta } from "./pago-tarjeta";

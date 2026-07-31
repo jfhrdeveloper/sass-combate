@@ -1,9 +1,10 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { crearAcademia, type EstadoFormulario } from "@/app/acciones";
+import { crearAcademia, type EstadoFormulario } from "@/actions/academia";
 import { Aviso, BotonEnvio } from "@/components/ui/formulario";
 import { Campo } from "@/components/ui/input";
+import { envPublico } from "@/config/env";
 
 function aSlug(v: string) {
   return v
@@ -18,7 +19,7 @@ export default function PaginaNuevaAcademia() {
   const [estado, accion] = useActionState<EstadoFormulario, FormData>(crearAcademia, {});
   const [nombre, setNombre] = useState("");
   const [slug, setSlug] = useState("");
-  const dominio = process.env.NEXT_PUBLIC_DOMINIO_RAIZ ?? "localhost:3000";
+  const dominio = envPublico.NEXT_PUBLIC_DOMINIO_RAIZ;
   const actual = slug || aSlug(nombre);
 
   return (

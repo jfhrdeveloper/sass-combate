@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { listarReclamos } from "@/lib/reclamos";
-import { fechaLarga } from "@/lib/format";
+import { listarReclamos } from "@/services/reclamos";
+import { fechaLarga } from "@/utils/format";
 import { ResponderReclamo } from "./responder";
 import { Paginador } from "@/components/ui/paginador";
 import { paginar } from "@/lib/paginacion";

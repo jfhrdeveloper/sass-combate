@@ -1,11 +1,11 @@
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
 import { Paginador } from "@/components/ui/paginador";
-import { exigirAcademia } from "@/lib/auth";
-import { listarEventos, obtenerInscripcionesClub, obtenerPrecioInscripcion } from "@/lib/consultas";
+import { exigirAcademia } from "@/services/auth";
+import { listarEventos, obtenerInscripcionesClub, obtenerPrecioInscripcion } from "@/services/consultas";
 import { CargarLista } from "./cargar";
 import { SubirComprobante } from "./comprobante";
 import { paginar } from "@/lib/paginacion";
-import { kg } from "@/lib/format";
+import { kg } from "@/utils/format";
 
 export default async function PaginaMiClub({
   searchParams,

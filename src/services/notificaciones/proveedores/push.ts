@@ -1,14 +1,15 @@
 import webpush from "web-push";
+import { envPublico, envServidor } from "@/config/env";
 
 export const PUSH_CONFIGURADO = Boolean(
-  process.env.VAPID_PRIVATE_KEY && process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+  envServidor.VAPID_PRIVATE_KEY && envPublico.NEXT_PUBLIC_VAPID_PUBLIC_KEY
 );
 
 if (PUSH_CONFIGURADO) {
   webpush.setVapidDetails(
     "mailto:soporte@sass-combate.com",
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-    process.env.VAPID_PRIVATE_KEY!
+    envPublico.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+    envServidor.VAPID_PRIVATE_KEY!
   );
 }
 

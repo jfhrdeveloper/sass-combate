@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { crearEvento, type EstadoFormulario } from "@/app/acciones";
+import { crearEvento, type EstadoFormulario } from "@/actions/eventos";
 import { Aviso, BotonEnvio } from "@/components/ui/formulario";
 import { Campo } from "@/components/ui/input";
 

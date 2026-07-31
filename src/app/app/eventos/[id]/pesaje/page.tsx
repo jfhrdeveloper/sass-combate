@@ -4,11 +4,11 @@ import { use, useEffect, useMemo, useState } from "react";
 
 import { Campo } from "@/components/ui/input";
 import { BarraConexion, EstadoConexion } from "@/components/estado-conexion";
-import { useSincronizacion } from "@/lib/offline/sincronizacion";
-import { guardarCache, leerCache } from "@/lib/offline/db";
+import { useSincronizacion } from "@/hooks/use-sincronizacion";
+import { guardarCache, leerCache } from "@/services/offline-db";
 import { INSCRIPCIONES_DEMO } from "@/lib/datos";
 import { nivelPorPeleas } from "@/lib/nivel";
-import type { Inscripcion } from "@/lib/types";
+import type { Inscripcion } from "@/types";
 
 export default function PaginaPesaje({
   params,

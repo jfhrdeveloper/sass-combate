@@ -1,10 +1,10 @@
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
 import { Paginador } from "@/components/ui/paginador";
-import { exigirAcademia } from "@/lib/auth";
-import { listarPagos } from "@/lib/pagos";
+import { exigirAcademia } from "@/services/auth";
+import { listarPagos } from "@/services/pagos";
 import { paginar } from "@/lib/paginacion";
 import { RevisarPago } from "./revisar";
-import { fechaLarga } from "@/lib/format";
+import { fechaLarga } from "@/utils/format";
 
 const COLOR: Record<string, string> = {
   en_revision: "bg-aviso-suave text-aviso-fuerte",

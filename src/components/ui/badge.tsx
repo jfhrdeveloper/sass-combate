@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/cn";
 
 const colores: Record<string, string> = {
   pendiente: "bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300",

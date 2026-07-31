@@ -1,5 +1,7 @@
+import { envPublico, envServidor } from "@/config/env";
+
 export const CULQI_CONFIGURADO = Boolean(
-  process.env.CULQI_SECRET_KEY && process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY
+  envServidor.CULQI_SECRET_KEY && envPublico.NEXT_PUBLIC_CULQI_PUBLIC_KEY
 );
 
 export interface CargoCulqi {
@@ -22,7 +24,7 @@ export async function crearCargoCulqi(params: {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.CULQI_SECRET_KEY}`,
+      Authorization: `Bearer ${envServidor.CULQI_SECRET_KEY}`,
     },
     body: JSON.stringify({
       amount: Math.round(params.montoSoles * 100),

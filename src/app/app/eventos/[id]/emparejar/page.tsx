@@ -6,8 +6,8 @@ import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
 import { TarjetaPelea } from "@/components/ui/tarjeta-pelea";
 import { INSCRIPCIONES_DEMO } from "@/lib/datos";
 import { REGLAS_POR_DEFECTO, emparejar, type Cruce } from "@/lib/emparejador";
-import { NOMBRE_MODALIDAD } from "@/lib/types";
-import { kg } from "@/lib/format";
+import { NOMBRE_MODALIDAD } from "@/types";
+import { kg } from "@/utils/format";
 
 export default function PaginaEmparejar() {
   const [reglas, setReglas] = useState(REGLAS_POR_DEFECTO);

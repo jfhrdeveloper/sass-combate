@@ -5,12 +5,12 @@ import { Boton } from "@/components/ui/button";
 import { Insignia } from "@/components/ui/badge";
 import { TarjetaPelea } from "@/components/ui/tarjeta-pelea";
 import { BarraConexion, EstadoConexion } from "@/components/estado-conexion";
-import { useSincronizacion } from "@/lib/offline/sincronizacion";
-import { guardarCache, leerCache } from "@/lib/offline/db";
+import { useSincronizacion } from "@/hooks/use-sincronizacion";
+import { guardarCache, leerCache } from "@/services/offline-db";
 import { AREAS_DEMO, BLOQUES_DEMO, PELEAS_DEMO, inscripcionPorId } from "@/lib/datos";
 import { construirAgenda, formatearRetraso, proximasPeleas } from "@/lib/horarios";
-import { hora, kg } from "@/lib/format";
-import type { Esquina } from "@/lib/types";
+import { hora, kg } from "@/utils/format";
+import type { Esquina } from "@/types";
 
 const METODOS = ["decision", "rsc", "abandono", "descalificacion", "walkover"];
 

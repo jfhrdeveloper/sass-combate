@@ -1,5 +1,5 @@
-import { crearClienteServidor } from "./supabase/server";
-import { HAY_SUPABASE } from "./datos";
+import { crearClienteServidor } from "@/lib/supabase/server";
+import { HAY_SUPABASE } from "@/lib/datos";
 
 export interface ResumenAtleta {
   id: string;

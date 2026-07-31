@@ -7,9 +7,9 @@ import { Reveal } from "@/components/ui/reveal";
 import { NavLanding } from "@/components/nav-landing";
 import { FooterLanding } from "@/components/footer-landing";
 import { WhatsAppFab } from "@/components/whatsapp-fab";
-import { urlWhatsApp } from "@/lib/contacto";
-import { NOMBRE_MODALIDAD } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { urlWhatsApp } from "@/config/contacto";
+import { NOMBRE_MODALIDAD } from "@/types";
+import { cn } from "@/utils/cn";
 
 const TITULO = "sass-combate — Torneos de kickboxing, muay thai y MMA sin Excel";
 const DESCRIPCION =

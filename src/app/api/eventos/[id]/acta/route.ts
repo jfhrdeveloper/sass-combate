@@ -10,7 +10,7 @@ import {
 } from "@/lib/datos";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { construirAgenda } from "@/lib/horarios";
-import { hora } from "@/lib/format";
+import { hora } from "@/utils/format";
 
 export const maxDuration = 60;
 

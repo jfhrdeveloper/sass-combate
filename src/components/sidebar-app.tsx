@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PanelLeftClose, PanelLeftOpen, LogOut } from "lucide-react";
-import { navParaRol, esRutaActiva } from "@/lib/nav-app";
+import { navParaRol, esRutaActiva } from "@/config/nav-app";
 import { SelectorRolDemo } from "@/components/selector-rol-demo";
-import { cn } from "@/lib/utils";
-import type { Rol } from "@/lib/roles";
+import { cn } from "@/utils/cn";
+import type { Rol } from "@/config/roles";
 
 interface Props {
   colapsado: boolean;

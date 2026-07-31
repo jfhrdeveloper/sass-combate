@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Campo } from "@/components/ui/input";
 import { Paginador } from "@/components/ui/paginador";
-import { buscarAtletas } from "@/lib/atletas";
+import { buscarAtletas } from "@/services/atletas";
 import { ETIQUETA_NIVEL, nivelPorPeleas } from "@/lib/nivel";
 import { paginar } from "@/lib/paginacion";
 

@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Boton } from "@/components/ui/button";
+import { envPublico } from "@/config/env";
 
-const CLAVE_VAPID = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+const CLAVE_VAPID = envPublico.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
 function claveComoUint8Array(base64: string): Uint8Array {
   const relleno = "=".repeat((4 - (base64.length % 4)) % 4);

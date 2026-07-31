@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/cn";
 
 export function Tarjeta({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return <div className={cn("rounded-xl border border-borde bg-panel p-4", className)} {...props} />;

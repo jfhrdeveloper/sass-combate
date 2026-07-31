@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { emparejar, evaluarCruce, alternativasPara } from "@/lib/emparejador";
-import type { Inscripcion } from "@/lib/types";
+import type { Inscripcion } from "@/types";
 
 let n = 0;
 function ins(p: Partial<Inscripcion> = {}): Inscripcion {

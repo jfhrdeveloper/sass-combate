@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { SidebarApp } from "@/components/sidebar-app";
 import { BottomNavApp } from "@/components/bottom-nav-app";
-import { cn } from "@/lib/utils";
-import type { Rol } from "@/lib/roles";
+import { cn } from "@/utils/cn";
+import type { Rol } from "@/config/roles";
 
 const CLAVE_COLAPSADO = "app-sidebar-colapsado";
 

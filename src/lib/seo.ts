@@ -1,4 +1,6 @@
-const RAIZ = process.env.NEXT_PUBLIC_DOMINIO_RAIZ ?? "localhost:3000";
+import { envPublico } from "@/config/env";
+
+const RAIZ = envPublico.NEXT_PUBLIC_DOMINIO_RAIZ;
 const ES_LOCAL = RAIZ.startsWith("localhost");
 
 /** URL raíz del sitio (dominio de marketing, sin subdominio de academia). */

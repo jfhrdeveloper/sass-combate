@@ -4,6 +4,7 @@ import { useState } from "react";
 import Script from "next/script";
 import { Boton } from "@/components/ui/button";
 import { Aviso } from "@/components/ui/formulario";
+import { envPublico } from "@/config/env";
 
 declare global {
   interface Window {
@@ -19,7 +20,7 @@ declare global {
   }
 }
 
-const CLAVE_PUBLICA = process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY;
+const CLAVE_PUBLICA = envPublico.NEXT_PUBLIC_CULQI_PUBLIC_KEY;
 
 /** Botón de pago con tarjeta: usa el widget Checkout.js de Culqi para tokenizar
  * la tarjeta en el navegador; el número de tarjeta nunca toca este servidor. */

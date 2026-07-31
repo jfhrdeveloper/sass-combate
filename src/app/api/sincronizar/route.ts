@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { HAY_SUPABASE } from "@/lib/datos";
-import { avisarPeleasCercanas } from "@/lib/notificaciones";
+import { avisarPeleasCercanas } from "@/services/notificaciones";
 import { LIMITE_INSCRITOS_GRATIS, eventoDesbloqueado } from "@/lib/planes";
 
 /**

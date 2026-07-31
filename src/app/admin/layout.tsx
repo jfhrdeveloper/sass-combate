@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { esStaff, sesionActual } from "@/lib/auth";
-import { salir } from "@/app/acciones";
+import { esStaff, sesionActual } from "@/services/auth";
+import { salir } from "@/actions/cuenta";
 import Link from "next/link";
 
 export default async function LayoutAdmin({ children }: { children: React.ReactNode }) {
