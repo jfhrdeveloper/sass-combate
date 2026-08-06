@@ -46,7 +46,7 @@ export default async function PaginaPublica({
 
   if (!agenda) {
     return (
-      <main className="mx-auto max-w-3xl p-6 text-center text-slate-600">
+      <main className="mx-auto max-w-3xl p-6 text-center text-slate-600 dark:text-slate-400">
         Evento no encontrado o todavía no es público.
       </main>
     );
@@ -87,9 +87,9 @@ export default async function PaginaPublica({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <p className="text-xs uppercase tracking-wide text-slate-400">{org}</p>
+      <p className="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">{org}</p>
       <h1 className="text-2xl font-semibold">{agenda.evento.nombre}</h1>
-      <p className="text-slate-600">
+      <p className="text-slate-600 dark:text-slate-400">
         {fechaLarga(agenda.evento.fecha)} · {agenda.evento.sede}
       </p>
 
@@ -106,7 +106,7 @@ export default async function PaginaPublica({
 
       <AgendaConBusqueda agendas={agendas} peleas={peleas} />
 
-      <p className="mt-8 text-center text-xs text-slate-400">
+      <p className="mt-8 text-center text-xs text-slate-400 dark:text-slate-500">
         Horarios estimados. Esta página se actualiza sola.
       </p>
 

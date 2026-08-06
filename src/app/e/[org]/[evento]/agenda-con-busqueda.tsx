@@ -53,7 +53,7 @@ export function AgendaConBusqueda({
             <div className="flex items-baseline justify-between">
               <h2 className="text-lg font-medium">{ag.area.nombre}</h2>
               {!filtro && (
-                <span className="text-sm text-slate-500">{formatearRetraso(ag.retrasoSeg)}</span>
+                <span className="text-sm text-slate-500 dark:text-slate-400">{formatearRetraso(ag.retrasoSeg)}</span>
               )}
             </div>
             <ul className="mt-3 grid gap-2">
@@ -74,12 +74,12 @@ export function AgendaConBusqueda({
                     key={f.id}
                     className="flex items-center gap-3 rounded-lg border border-borde bg-panel px-3 py-2"
                   >
-                    <span className="w-14 shrink-0 font-display tabular-nums text-slate-600">
+                    <span className="w-14 shrink-0 font-display tabular-nums text-slate-600 dark:text-slate-400">
                       {hora(f.inicio)}
                     </span>
                     <span className="min-w-0 flex-1">
                       <TarjetaPelea roja={p.roja ?? undefined} azul={p.azul ?? undefined} tamano="sm" />
-                      <span className="block text-center text-xs text-slate-500">
+                      <span className="block text-center text-xs text-slate-500 dark:text-slate-400">
                         {p.club_roja} · {p.club_azul}
                       </span>
                     </span>
@@ -93,7 +93,7 @@ export function AgendaConBusqueda({
       })}
 
       {sinResultados && (
-        <p className="mt-8 text-center text-sm text-slate-500">
+        <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
           Nadie coincide con &ldquo;{busqueda}&rdquo;.
         </p>
       )}

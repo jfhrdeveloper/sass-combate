@@ -25,23 +25,23 @@ export function AgregarPeleaExterna({ atletaId }: { atletaId: string }) {
         <input type="hidden" name="atletaId" value={atletaId} />
 
         <label className="grid gap-1 text-sm">
-          <span className="text-slate-600">Fecha</span>
+          <span className="text-slate-600 dark:text-slate-400">Fecha</span>
           <Campo name="fecha" type="date" required />
         </label>
         <label className="grid gap-1 text-sm">
-          <span className="text-slate-600">Evento</span>
+          <span className="text-slate-600 dark:text-slate-400">Evento</span>
           <Campo name="evento" required placeholder="Copa Regional 2025" />
         </label>
         <label className="grid gap-1 text-sm">
-          <span className="text-slate-600">Disciplina</span>
+          <span className="text-slate-600 dark:text-slate-400">Disciplina</span>
           <Campo name="disciplina" required defaultValue="kickboxing" />
         </label>
         <label className="grid gap-1 text-sm">
-          <span className="text-slate-600">Rival</span>
+          <span className="text-slate-600 dark:text-slate-400">Rival</span>
           <Campo name="rival" placeholder="Nombre del rival" />
         </label>
         <label className="grid gap-1 text-sm">
-          <span className="text-slate-600">Resultado</span>
+          <span className="text-slate-600 dark:text-slate-400">Resultado</span>
           <select
             name="resultado"
             className="h-10 rounded-lg border border-borde bg-panel px-3 text-sm"
@@ -54,7 +54,7 @@ export function AgregarPeleaExterna({ atletaId }: { atletaId: string }) {
           </select>
         </label>
         <label className="grid gap-1 text-sm">
-          <span className="text-slate-600">Método</span>
+          <span className="text-slate-600 dark:text-slate-400">Método</span>
           <Campo name="metodo" placeholder="decisión, rsc…" />
         </label>
 

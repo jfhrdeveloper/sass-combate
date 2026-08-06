@@ -4,10 +4,18 @@ import { useMemo, useState } from "react";
 import { Boton } from "@/components/ui/button";
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
 import { TarjetaPelea } from "@/components/ui/tarjeta-pelea";
-import { INSCRIPCIONES_DEMO } from "@/lib/datos";
+import { CATEGORIAS_DEMO, INSCRIPCIONES_DEMO } from "@/lib/datos";
 import { REGLAS_POR_DEFECTO, emparejar, type Cruce } from "@/lib/emparejador";
-import { NOMBRE_MODALIDAD, type Inscripcion } from "@/types";
+import { categoriaDePeso } from "@/lib/categorias";
+import { NOMBRE_MODALIDAD, type ModalidadCodigo, type Inscripcion } from "@/types";
 import { kg } from "@/utils/format";
+
+/** Solo etiqueta visual — el emparejador de arriba ya cruzó por tolerancia de
+ *  peso; esto no participa de esa decisión, solo la muestra. */
+function nombreCategoria(modalidad: ModalidadCodigo, peso: number | null, sexo: Inscripcion["sexo"]) {
+  const propias = CATEGORIAS_DEMO.filter((c) => c.modalidad === modalidad);
+  return categoriaDePeso(propias, peso, sexo)?.nombre ?? null;
+}
 
 interface ParManual {
   a: Inscripcion;
@@ -55,7 +63,7 @@ export default function PaginaEmparejar() {
   return (
     <main className="mx-auto max-w-5xl p-6">
       <h1 className="text-2xl font-semibold">Emparejamiento</h1>
-      <p className="mt-1 text-slate-600">
+      <p className="mt-1 text-slate-600 dark:text-slate-400">
         El motor propone; el organizador decide. Ajusta las reglas y revisa los cruces.
       </p>
 
@@ -83,7 +91,7 @@ export default function PaginaEmparejar() {
       <Tarjeta className="mt-6">
         <div className="grid gap-4 sm:grid-cols-3">
           <label className="text-sm">
-            <span className="text-slate-600">
+            <span className="text-slate-600 dark:text-slate-400">
               Diferencia máxima de peso: {reglas.maxDifPesoPct}%
             </span>
             <input
@@ -99,7 +107,7 @@ export default function PaginaEmparejar() {
             />
           </label>
           <label className="text-sm">
-            <span className="text-slate-600">
+            <span className="text-slate-600 dark:text-slate-400">
               Diferencia máxima de edad: {reglas.maxDifEdad} años
             </span>
             <input
@@ -112,7 +120,7 @@ export default function PaginaEmparejar() {
               className="mt-2 w-full"
             />
           </label>
-          <label className="flex items-center gap-2 text-sm text-slate-600">
+          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
             <input
               type="checkbox"
               checked={reglas.permitirMismoClub}
@@ -127,7 +135,7 @@ export default function PaginaEmparejar() {
 
       <div className="mt-6 flex items-center justify-between">
         <h2 className="text-lg font-medium">Propuestas</h2>
-        <p className="text-sm text-slate-500">{confirmadas} confirmadas</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">{confirmadas} confirmadas</p>
       </div>
 
       <ul className="mt-3 grid gap-2">
@@ -148,9 +156,14 @@ export default function PaginaEmparejar() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <TarjetaPelea roja={c.a.nombre} azul={c.b.nombre} tamano="sm" />
-                  <p className="mt-1 text-center text-xs text-slate-500">
-                    {c.a.club} {kg(c.a.peso_pesaje)} · {c.b.club} {kg(c.b.peso_pesaje)} ·{" "}
-                    {NOMBRE_MODALIDAD[c.modalidad]} · {c.criterio}
+                  <p className="mt-1 text-center text-xs text-slate-500 dark:text-slate-400">
+                    {c.a.club} {kg(c.a.peso_pesaje)}
+                    {nombreCategoria(c.modalidad, c.a.peso_pesaje, c.a.sexo) &&
+                      ` (${nombreCategoria(c.modalidad, c.a.peso_pesaje, c.a.sexo)})`}{" "}
+                    · {c.b.club} {kg(c.b.peso_pesaje)}
+                    {nombreCategoria(c.modalidad, c.b.peso_pesaje, c.b.sexo) &&
+                      ` (${nombreCategoria(c.modalidad, c.b.peso_pesaje, c.b.sexo)})`}{" "}
+                    · {NOMBRE_MODALIDAD[c.modalidad]} · {c.criterio}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -181,7 +194,7 @@ export default function PaginaEmparejar() {
       {manuales.length > 0 && (
         <section className="mt-8">
           <h2 className="text-lg font-medium">Emparejamientos manuales</h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Armados a mano arrastrando peleadores de &ldquo;sin rival&rdquo; — el motor no los propuso.
           </p>
           <ul className="mt-3 grid gap-2">
@@ -193,7 +206,7 @@ export default function PaginaEmparejar() {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <TarjetaPelea roja={par.a.nombre} azul={par.b.nombre} tamano="sm" />
-                    <p className="mt-1 text-center text-xs text-slate-500">
+                    <p className="mt-1 text-center text-xs text-slate-500 dark:text-slate-400">
                       {par.a.club} {kg(par.a.peso_pesaje)} · {par.b.club} {kg(par.b.peso_pesaje)}
                     </p>
                   </div>
@@ -210,7 +223,7 @@ export default function PaginaEmparejar() {
       {sinRivalRestantes.length > 0 && (
         <section className="mt-8">
           <h2 className="text-lg font-medium">Sin rival</h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Hay que bajar tolerancias, fusionar categorías, avisar al coach — o arrastrar dos
             peleadores entre sí para emparejarlos a mano.
           </p>
@@ -234,7 +247,7 @@ export default function PaginaEmparejar() {
                 }`}
               >
                 <span className="font-medium">{i.nombre}</span>
-                <span className="block text-xs text-slate-500">
+                <span className="block text-xs text-slate-500 dark:text-slate-400">
                   {i.club} · {kg(i.peso_pesaje)} · {i.edad ?? "sin edad"} ·{" "}
                   {i.modalidades.map((m) => NOMBRE_MODALIDAD[m]).join(", ")}
                 </span>
@@ -245,13 +258,13 @@ export default function PaginaEmparejar() {
       )}
 
       <section className="mt-8 rounded-xl border border-borde bg-panel p-4">
-        <h2 className="text-sm font-medium text-slate-500">Motivos de rechazo</h2>
+        <h2 className="text-sm font-medium text-slate-500 dark:text-slate-400">Motivos de rechazo</h2>
         <ul className="mt-2 grid gap-1 text-sm sm:grid-cols-3">
           {Object.entries(resultado.rechazos)
             .sort((a, b) => b[1] - a[1])
             .map(([motivo, n]) => (
               <li key={motivo} className="flex justify-between gap-2">
-                <span className="text-slate-600">{motivo}</span>
+                <span className="text-slate-600 dark:text-slate-400">{motivo}</span>
                 <span className="tabular-nums">{n}</span>
               </li>
             ))}

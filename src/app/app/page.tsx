@@ -64,7 +64,7 @@ export default async function VistaGeneral({
       {eventos.length === 0 ? (
         <div className="mt-8 rounded-xl border border-dashed border-borde p-10 text-center">
           <p className="font-medium">Todavía no hay eventos</p>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Crea el primero y empieza a inscribir peleadores.
           </p>
           <Link href="/app/eventos/nuevo" className={cn(estilos({ tamano: "md" }), "mt-4 inline-block")}>
@@ -82,7 +82,7 @@ export default async function VistaGeneral({
                 >
                   <span>
                     <span className="font-medium">{e.nombre}</span>
-                    <span className="block text-sm text-slate-500">
+                    <span className="block text-sm text-slate-500 dark:text-slate-400">
                       {fechaLarga(e.fecha)}
                       {e.sede ? ` · ${e.sede}` : ""}
                     </span>

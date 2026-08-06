@@ -115,6 +115,47 @@ const DEMO: Pago[] = [
   },
 ];
 
+/** Volumen extra para revisar paginación y el gráfico de ingresos con más
+ *  de un puñado de pagos — mismo criterio determinista que en `lib/datos.ts`
+ *  (PRNG con semilla fija, no `Math.random()`). */
+function mulberry32(semilla: number) {
+  let a = semilla;
+  return function () {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const CLUBES_PAGOS = [
+  "La Sexta Calle", "Grinta Fight", "Diamond Boys", "Federico Gomez Iquitos",
+  "Team Hapa", "Cazorla", "Dojo Boyka Fight", "Zambrano Fight", "Kick Fighters Nasca",
+  "Fenix Combat", "Warrior's Den", "Selva Fight Team", "Norte Kickboxing", "Andes MMA",
+];
+const METODOS_PAGO = ["yape", "plin", "transferencia", "efectivo", "tarjeta"] as const;
+const rand = mulberry32(20260804);
+
+const DEMO_GENERADOS: Pago[] = Array.from({ length: 35 }, (_, i) => {
+  const n = DEMO.length + i;
+  const r = rand();
+  const estado: Pago["estado"] = r < 0.15 ? "en_revision" : r < 0.3 ? "rechazado" : "aprobado";
+  return {
+    id: `pg${n + 1}`,
+    club: CLUBES_PAGOS[Math.floor(rand() * CLUBES_PAGOS.length)],
+    metodo: METODOS_PAGO[Math.floor(rand() * METODOS_PAGO.length)],
+    monto: Math.round((100 + rand() * 500) / 10) * 10,
+    referencia: estado === "en_revision" || estado === "aprobado" ? String(10000000 + Math.floor(rand() * 89999999)) : null,
+    comprobante_url: null,
+    estado,
+    motivo_rechazo: estado === "rechazado" ? "La captura no coincide con el monto declarado." : null,
+    creado_en: new Date(Date.now() - Math.floor(rand() * 20) * 86400000).toISOString(),
+  };
+});
+
+DEMO.push(...DEMO_GENERADOS);
+
 export interface PuntoIngreso {
   etiqueta: string;
   fecha: string;

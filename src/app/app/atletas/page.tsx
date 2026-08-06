@@ -17,7 +17,7 @@ export default async function PaginaAtletas({
   return (
     <main className="mx-auto max-w-3xl p-6">
       <h1 className="text-2xl font-semibold">Atletas</h1>
-      <p className="mt-1 text-sm text-slate-600">
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
         Registro compartido entre academias. Busca por documento o nombre antes
         de inscribir a alguien: si ya compitió, su nivel sale de aquí.
       </p>
@@ -39,14 +39,14 @@ export default async function PaginaAtletas({
                   <span className="font-medium">
                     {a.nombres} {a.apellidos}
                   </span>
-                  <span className="block text-xs text-slate-500">
+                  <span className="block text-xs text-slate-500 dark:text-slate-400">
                     DNI {a.documento}
                     {a.disciplinas?.length ? ` · ${a.disciplinas.join(", ")}` : ""}
                   </span>
                 </span>
 
                 <span className="flex items-center gap-3 text-sm">
-                  <span className="tabular-nums text-slate-600">
+                  <span className="tabular-nums text-slate-600 dark:text-slate-400">
                     {a.victorias}-{a.derrotas}
                     {a.empates ? `-${a.empates}` : ""}
                   </span>
@@ -63,7 +63,7 @@ export default async function PaginaAtletas({
       {todos.length === 0 && (
         <div className="mt-10 rounded-xl border border-dashed border-borde p-8 text-center">
           <p className="font-medium">Sin resultados</p>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             {q
               ? "Nadie con ese documento o nombre. Se registrará como debutante."
               : "Escribe un documento o nombre para buscar."}
@@ -77,7 +77,7 @@ export default async function PaginaAtletas({
         hrefPara={(p) => `/app/atletas?${new URLSearchParams({ ...(q ? { q } : {}), page: String(p) })}`}
       />
 
-      <p className="mt-8 text-xs text-slate-400">
+      <p className="mt-8 text-xs text-slate-400 dark:text-slate-500">
         Ves el resumen de peleas de cualquier atleta, pero el detalle de cada
         evento solo lo ve la academia que lo registró.
       </p>

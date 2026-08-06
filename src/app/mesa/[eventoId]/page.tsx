@@ -7,20 +7,38 @@ import { TarjetaPelea } from "@/components/ui/tarjeta-pelea";
 import { BarraConexion, EstadoConexion } from "@/components/estado-conexion";
 import { useSincronizacion } from "@/hooks/use-sincronizacion";
 import { guardarCache, leerCache } from "@/services/offline-db";
-import { AREAS_DEMO, BLOQUES_DEMO, PELEAS_DEMO, inscripcionPorId } from "@/lib/datos";
+import { AREAS_DEMO, BLOQUES_DEMO, CATEGORIAS_DEMO, PELEAS_DEMO, inscripcionPorId } from "@/lib/datos";
 import { construirAgenda, formatearRetraso, proximasPeleas } from "@/lib/horarios";
+import { categoriaDePeso } from "@/lib/categorias";
 import { hora, kg } from "@/utils/format";
-import type { Esquina } from "@/types";
+import {
+  DISCIPLINA_POR_MODALIDAD,
+  METODOS_POR_DISCIPLINA,
+  NOMBRE_METODO,
+  type Esquina,
+  type Inscripcion,
+  type MetodoCodigo,
+} from "@/types";
 
-const METODOS = ["decision", "rsc", "abandono", "descalificacion", "walkover"];
+/** La modalidad de la pelea es la que comparten roja y azul (así fue como el
+ *  emparejador o el organizador los cruzó); si por algún motivo no comparten
+ *  ninguna (dato cargado a mano, por ejemplo), cae a la primera de roja. Sin
+ *  ninguna de las dos, cae al vocabulario de kickboxing — el que ya existía
+ *  antes de que los métodos dependieran de la disciplina. */
+function metodosDePelea(roja: Inscripcion | undefined, azul: Inscripcion | undefined) {
+  const comun = roja?.modalidades.find((m) => azul?.modalidades.includes(m));
+  const modalidad = comun ?? roja?.modalidades[0] ?? azul?.modalidades[0];
+  const disciplina = modalidad ? DISCIPLINA_POR_MODALIDAD[modalidad] : "kickboxing";
+  return METODOS_POR_DISCIPLINA[disciplina];
+}
 
-const NOMBRE_METODO: Record<string, string> = {
-  decision: "Decisión",
-  rsc: "RSC",
-  abandono: "Abandono",
-  descalificacion: "Descalificación",
-  walkover: "Walkover",
-};
+/** Solo etiqueta visual junto al peso — filtra las categorías del evento a
+ *  las de la modalidad del propio peleador antes de matchear por peso. */
+function categoriaDe(inscripcion: Inscripcion | undefined) {
+  if (!inscripcion) return null;
+  const propias = CATEGORIAS_DEMO.filter((c) => inscripcion.modalidades.includes(c.modalidad));
+  return categoriaDePeso(propias, inscripcion.peso_pesaje, inscripcion.sexo);
+}
 
 /**
  * Paso del registro de resultado, uno a la vez: primero la esquina (el tap
@@ -32,7 +50,7 @@ const NOMBRE_METODO: Record<string, string> = {
 type Paso =
   | { fase: "esquina"; peleaId: string }
   | { fase: "metodo"; peleaId: string; esquina: Esquina }
-  | { fase: "confirmar"; peleaId: string; esquina: Esquina; metodo: string };
+  | { fase: "confirmar"; peleaId: string; esquina: Esquina; metodo: MetodoCodigo };
 
 export default function MesaDeControl({
   params,
@@ -57,7 +75,7 @@ export default function MesaDeControl({
   const proximas = proximasPeleas(agendas, 8).filter((f) => !resueltas[f.id]);
   const retraso = Math.max(...agendas.map((a) => a.retrasoSeg));
 
-  async function confirmar(peleaId: string, ganador: Esquina, metodo: string) {
+  async function confirmar(peleaId: string, ganador: Esquina, metodo: MetodoCodigo) {
     const nuevas = { ...resueltas, [peleaId]: ganador };
     setResueltas(nuevas);
     setPaso(null);
@@ -77,7 +95,7 @@ export default function MesaDeControl({
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">Mesa de control</h1>
-          <p className={`text-sm ${retraso > 600 ? "font-medium text-roja" : "text-slate-500"}`}>
+          <p className={`text-sm ${retraso > 600 ? "font-medium text-roja" : "text-slate-500 dark:text-slate-400"}`}>
             {formatearRetraso(retraso)}
           </p>
         </div>
@@ -99,7 +117,7 @@ export default function MesaDeControl({
 
           return (
             <li key={f.id} className="rounded-xl border border-borde bg-panel p-4">
-              <div className="flex items-center justify-between text-sm text-slate-500">
+              <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
                 <span>
                   {area?.nombre} · pelea {f.orden} · {hora(f.inicio)}
                 </span>
@@ -107,12 +125,14 @@ export default function MesaDeControl({
               </div>
 
               <TarjetaPelea roja={roja?.nombre} azul={azul?.nombre} className="mt-2" />
-              <div className="mt-1 grid grid-cols-2 gap-2 text-xs text-slate-500">
+              <div className="mt-1 grid grid-cols-2 gap-2 text-xs text-slate-500 dark:text-slate-400">
                 <p className="text-right">
                   {roja?.club} · {kg(roja?.peso_pesaje ?? null)}
+                  {categoriaDe(roja) && ` · ${categoriaDe(roja)!.nombre}`}
                 </p>
                 <p>
                   {azul?.club} · {kg(azul?.peso_pesaje ?? null)}
+                  {categoriaDe(azul) && ` · ${categoriaDe(azul)!.nombre}`}
                 </p>
               </div>
 
@@ -147,7 +167,7 @@ export default function MesaDeControl({
                 </div>
               ) : enEsta.fase === "metodo" ? (
                 <div className="mt-3 grid gap-2">
-                  <p className="text-center text-sm text-slate-500">
+                  <p className="text-center text-sm text-slate-500 dark:text-slate-400">
                     Gana{" "}
                     <span className={enEsta.esquina === "roja" ? "text-roja" : "text-azul"}>
                       {enEsta.esquina === "roja" ? roja?.nombre : azul?.nombre}
@@ -155,7 +175,7 @@ export default function MesaDeControl({
                     — ¿por qué método?
                   </p>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                    {METODOS.map((m) => (
+                    {metodosDePelea(roja, azul).map((m) => (
                       <Boton
                         key={m}
                         variante="contorno"
@@ -207,7 +227,7 @@ export default function MesaDeControl({
       </ul>
 
       {proximas.length === 0 && (
-        <p className="mt-10 text-center text-slate-500">No quedan peleas pendientes.</p>
+        <p className="mt-10 text-center text-slate-500 dark:text-slate-400">No quedan peleas pendientes.</p>
       )}
 
       <BarraConexion

@@ -13,7 +13,7 @@ export default function PaginaRegistro() {
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center p-6">
       <h1 className="text-2xl font-semibold">Crear cuenta</h1>
-      <p className="mt-1 text-sm text-slate-600">
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
         Registra tu academia y organiza tu primer evento.
       </p>
 
@@ -25,30 +25,30 @@ export default function PaginaRegistro() {
           </Boton>
         </form>
 
-        <div className="my-5 flex items-center gap-3 text-xs text-slate-400">
+        <div className="my-5 flex items-center gap-3 text-xs text-slate-400 dark:text-slate-500">
           <span className="h-px flex-1 bg-borde" />o<span className="h-px flex-1 bg-borde" />
         </div>
 
         <form action={accion} className="grid gap-3">
           <label className="grid gap-1 text-sm">
-            <span className="text-slate-600">Tu nombre</span>
+            <span className="text-slate-600 dark:text-slate-400">Tu nombre</span>
             <Campo name="nombre" required />
           </label>
           <label className="grid gap-1 text-sm">
-            <span className="text-slate-600">Correo</span>
+            <span className="text-slate-600 dark:text-slate-400">Correo</span>
             <Campo name="email" type="email" autoComplete="email" required />
           </label>
           <label className="grid gap-1 text-sm">
-            <span className="text-slate-600">Contraseña</span>
+            <span className="text-slate-600 dark:text-slate-400">Contraseña</span>
             <Campo name="password" type="password" autoComplete="new-password" required />
-            <span className="text-xs text-slate-400">Mínimo 8 caracteres</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500">Mínimo 8 caracteres</span>
           </label>
           <Aviso error={estado.error} ok={estado.ok} />
           <BotonEnvio className="w-full">Crear cuenta</BotonEnvio>
         </form>
       </div>
 
-      <p className="mt-4 text-center text-sm text-slate-600">
+      <p className="mt-4 text-center text-sm text-slate-600 dark:text-slate-400">
         ¿Ya tienes cuenta?{" "}
         <Link href="/entrar" className="font-medium underline">
           Entrar

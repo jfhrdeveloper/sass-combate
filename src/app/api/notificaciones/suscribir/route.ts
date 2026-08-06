@@ -1,6 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { z } from "zod";
 import { crearClienteServicio } from "@/lib/supabase/admin";
 import { HAY_SUPABASE } from "@/lib/datos";
+
+const esquemaSuscripcion = z.object({
+  token: z.string().min(1),
+  subscription: z.object({
+    endpoint: z.string().min(1),
+    keys: z.object({
+      p256dh: z.string().min(1),
+      auth: z.string().min(1),
+    }),
+  }),
+});
 
 /**
  * Guarda la suscripción push que el navegador generó en /p/[token].
@@ -10,20 +22,18 @@ import { HAY_SUPABASE } from "@/lib/datos";
  * resuelve y se escribe con `service_role` en vez de depender de RLS de sesión.
  */
 export async function POST(req: NextRequest) {
-  let cuerpo: {
-    token?: string;
-    subscription?: { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
-  };
+  let cuerpoJson: unknown;
   try {
-    cuerpo = await req.json();
+    cuerpoJson = await req.json();
   } catch {
     return NextResponse.json({ error: "cuerpo no válido" }, { status: 400 });
   }
 
-  const { token, subscription } = cuerpo;
-  if (!token || !subscription?.endpoint || !subscription.keys?.p256dh || !subscription.keys?.auth) {
-    return NextResponse.json({ error: "faltan campos" }, { status: 400 });
+  const parsed = esquemaSuscripcion.safeParse(cuerpoJson);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
   }
+  const { token, subscription } = parsed.data;
 
   if (!HAY_SUPABASE) return NextResponse.json({ ok: true, modo: "demo" });
 

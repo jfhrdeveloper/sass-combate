@@ -1,8 +1,21 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { z } from "zod";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { CULQI_CONFIGURADO, crearCargoCulqi } from "@/services/pagos/culqi";
 import { HAY_SUPABASE } from "@/lib/datos";
 import { PRECIO_EVENTO_SOLES, DIAS_EVENTO } from "@/lib/planes";
+import { limiteExcedido, ipDelRequest } from "@/utils/rate-limit";
+
+/* Mismo límite que /api/pagos/culqi (10 intentos cada 5 min por IP) — ver
+   utils/rate-limit.ts. */
+const MAX_INTENTOS = 10;
+const VENTANA_MS = 5 * 60 * 1000;
+
+const esquemaEvento = z.object({
+  eventoId: z.string().min(1),
+  tokenId: z.string().min(1),
+  email: z.string().email(),
+});
 
 /**
  * Cobra el desbloqueo "Por evento" para UN evento puntual (no la
@@ -12,17 +25,25 @@ import { PRECIO_EVENTO_SOLES, DIAS_EVENTO } from "@/lib/planes";
  * nuevo para otro evento no pisa el vencimiento de este.
  */
 export async function POST(req: NextRequest) {
-  let cuerpo: { eventoId?: string; tokenId?: string; email?: string };
+  if (limiteExcedido(`pagos-evento:${ipDelRequest(req)}`, MAX_INTENTOS, VENTANA_MS)) {
+    return NextResponse.json(
+      { error: "Demasiados intentos. Espera unos minutos e intenta de nuevo." },
+      { status: 429 }
+    );
+  }
+
+  let cuerpoJson: unknown;
   try {
-    cuerpo = await req.json();
+    cuerpoJson = await req.json();
   } catch {
     return NextResponse.json({ error: "cuerpo no válido" }, { status: 400 });
   }
 
-  const { eventoId, tokenId, email } = cuerpo;
-  if (!eventoId || !tokenId || !email) {
-    return NextResponse.json({ error: "faltan campos" }, { status: 400 });
+  const parsed = esquemaEvento.safeParse(cuerpoJson);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
   }
+  const { eventoId, tokenId, email } = parsed.data;
 
   if (!HAY_SUPABASE) {
     return NextResponse.json({ ok: true, modo: "demo" });

@@ -94,7 +94,7 @@ export function SidebarApp({
       {!haySupabase && (
         <div className="border-t border-borde px-3 py-3">
           {colapsado ? (
-            <p className="text-center text-[10px] font-semibold uppercase text-slate-400" title={`Rol demo: ${rol}`}>
+            <p className="text-center text-[10px] font-semibold uppercase text-slate-400 dark:text-slate-500" title={`Rol demo: ${rol}`}>
               {rol.slice(0, 3)}
             </p>
           ) : (

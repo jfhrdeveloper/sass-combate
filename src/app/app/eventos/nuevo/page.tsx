@@ -14,15 +14,15 @@ export default function PaginaNuevoEvento() {
 
       <form action={accion} className="mt-6 grid gap-4 rounded-xl border border-borde bg-panel p-5">
         <label className="grid gap-1 text-sm">
-          <span className="text-slate-600">Nombre</span>
+          <span className="text-slate-600 dark:text-slate-400">Nombre</span>
           <Campo name="nombre" required placeholder="Contender Internacional 2026" />
         </label>
         <label className="grid gap-1 text-sm">
-          <span className="text-slate-600">Fecha</span>
+          <span className="text-slate-600 dark:text-slate-400">Fecha</span>
           <Campo name="fecha" type="date" required />
         </label>
         <label className="grid gap-1 text-sm">
-          <span className="text-slate-600">Sede</span>
+          <span className="text-slate-600 dark:text-slate-400">Sede</span>
           <Campo name="sede" placeholder="Casa de la Cultura, San Miguel" />
         </label>
         <Aviso error={estado.error} ok={estado.ok} />

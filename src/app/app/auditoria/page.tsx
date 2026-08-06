@@ -98,7 +98,7 @@ export default async function PaginaAuditoria({
       {entradas.length === 0 && (
         <div className="mt-10 rounded-xl border border-dashed border-borde p-8 text-center">
           <p className="font-medium">Sin cambios registrados todavía</p>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             En cuanto la mesa registre o corrija un resultado, va a aparecer acá.
           </p>
         </div>

@@ -19,7 +19,7 @@ export default async function PaginaPeleador({
   const credencial = await obtenerCredencialPorToken(token);
 
   if (!credencial) {
-    return <main className="p-8 text-center text-slate-600">Credencial no encontrada.</main>;
+    return <main className="p-8 text-center text-slate-600 dark:text-slate-400">Credencial no encontrada.</main>;
   }
 
   const { yo, pelea, area, fila, retrasoSeg, rival } = credencial;
@@ -28,7 +28,7 @@ export default async function PaginaPeleador({
     return (
       <main className="mx-auto max-w-sm p-6 text-center">
         <h1 className="font-display text-2xl font-semibold">{yo.nombre}</h1>
-        <p className="mt-2 text-slate-600">Todavía no tienes una pelea con hora asignada.</p>
+        <p className="mt-2 text-slate-600 dark:text-slate-400">Todavía no tienes una pelea con hora asignada.</p>
       </main>
     );
   }
@@ -38,20 +38,20 @@ export default async function PaginaPeleador({
       <div className="flex items-center gap-3">
         <span className="h-10 w-1.5 shrink-0 rounded-full bg-roja" aria-hidden />
         <div>
-          <p className="text-xs uppercase tracking-wide text-slate-400">credencial {token}</p>
+          <p className="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">credencial {token}</p>
           <h1 className="font-display text-2xl font-semibold leading-none">{yo.nombre}</h1>
-          <p className="text-slate-600">
+          <p className="text-slate-600 dark:text-slate-400">
             {yo.club} · {kg(yo.peso_pesaje)}
           </p>
         </div>
       </div>
 
       <section className="mt-6 rounded-xl border border-borde bg-panel p-5 text-center">
-        <p className="text-sm text-slate-500">Tu pelea</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Tu pelea</p>
         <p className="mt-1 font-display text-6xl font-semibold tabular-nums">
           {hora(fila.inicio)}
         </p>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           {area?.nombre} · pelea {fila.orden}
         </p>
         {retrasoSeg > 600 && (
@@ -66,19 +66,19 @@ export default async function PaginaPeleador({
           tamano="md"
           className="mt-5"
         />
-        <p className="mt-1 grid grid-cols-2 gap-2 text-xs text-slate-500">
+        <p className="mt-1 grid grid-cols-2 gap-2 text-xs text-slate-500 dark:text-slate-400">
           <span className="text-right">{yo.club}</span>
           <span>{rival?.club}</span>
         </p>
 
-        <p className="mt-4 text-sm text-slate-500">
+        <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
           {yo.modalidades.map((m) => NOMBRE_MODALIDAD[m]).join(", ")}
           {yo.clase && ` · clase ${yo.clase}`} · {pelea.rounds}x{pelea.duracion_round_seg / 60}x
           {pelea.descanso_seg / 60}
         </p>
       </section>
 
-      <p className="mt-4 text-center text-xs text-slate-400">
+      <p className="mt-4 text-center text-xs text-slate-400 dark:text-slate-500">
         La hora es estimada y se actualiza sola. Preséntate 30 minutos antes.
       </p>
 

@@ -58,7 +58,7 @@ export default function PaginaPesaje({
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">Pesaje</h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             {pesados} de {lista.length} pesados
           </p>
         </div>
@@ -91,7 +91,7 @@ export default function PaginaPesaje({
               <div className="flex flex-wrap items-center gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{i.nombre}</p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     {i.club} · {i.edad ?? "sin edad"} años · nivel {i.nivel ?? nivel}
                   </p>
                 </div>
@@ -126,7 +126,7 @@ export default function PaginaPesaje({
       </ul>
 
       {filtrada.length === 0 && (
-        <p className="mt-8 text-center text-sm text-slate-500">Nadie coincide con la búsqueda.</p>
+        <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">Nadie coincide con la búsqueda.</p>
       )}
 
       <div className="mt-6 rounded-xl border border-borde bg-panel p-4 text-sm text-slate-600 dark:text-slate-300">

@@ -1,8 +1,50 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { z } from "zod";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { HAY_SUPABASE } from "@/lib/datos";
 import { avisarPeleasCercanas } from "@/services/notificaciones";
 import { LIMITE_INSCRITOS_GRATIS, eventoDesbloqueado } from "@/lib/planes";
+
+/* Un schema por tipo de operación de la cola offline — antes cada `case` del
+   switch de abajo casteaba `datos` con `as {...}` (solo compile-time, no
+   valida nada en runtime). Un item mal formado llegando de la cola offline
+   explotaba dentro del try/catch genérico como 500 opaco; ahora se rechaza
+   acá con un 400 que dice exactamente qué campo vino mal. */
+const esquemaResultado = z.object({
+  peleaId: z.string().min(1),
+  ganadorId: z.string().min(1).nullable(),
+  metodo: z.string().min(1),
+  round: z.number().optional(),
+  exhibicion: z.boolean().optional(),
+});
+
+const esquemaPesaje = z.object({
+  inscripcionId: z.string().min(1),
+  peso: z.number(),
+});
+
+const esquemaAsistencia = z.object({
+  inscripcionId: z.string().min(1),
+  presente: z.boolean(),
+});
+
+const esquemaInscripcion = z.object({
+  nombre: z.string().min(1),
+  documento: z.string().min(1),
+  nacimiento: z.string().min(1),
+  sexo: z.string().min(1),
+  peso: z.string().min(1),
+  modalidad: z.string().min(1),
+  telefono: z.string().nullable().optional(),
+  email: z.string().nullable().optional(),
+});
+
+const esquemaCuerpo = z.discriminatedUnion("tipo", [
+  z.object({ tipo: z.literal("resultado"), eventoId: z.string().min(1), datos: esquemaResultado }),
+  z.object({ tipo: z.literal("pesaje"), eventoId: z.string().min(1), datos: esquemaPesaje }),
+  z.object({ tipo: z.literal("asistencia"), eventoId: z.string().min(1), datos: esquemaAsistencia }),
+  z.object({ tipo: z.literal("inscripcion"), eventoId: z.string().min(1), datos: esquemaInscripcion }),
+]);
 
 /**
  * Recibe las operaciones que la mesa acumuló sin conexión.
@@ -17,17 +59,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "falta la clave de idempotencia" }, { status: 400 });
   }
 
-  let cuerpo: { tipo?: string; eventoId?: string; datos?: Record<string, unknown> };
+  let cuerpoJson: unknown;
   try {
-    cuerpo = await req.json();
+    cuerpoJson = await req.json();
   } catch {
     return NextResponse.json({ error: "cuerpo no válido" }, { status: 400 });
   }
 
-  const { tipo, eventoId, datos } = cuerpo;
-  if (!tipo || !eventoId || !datos) {
-    return NextResponse.json({ error: "faltan campos" }, { status: 400 });
+  const parsed = esquemaCuerpo.safeParse(cuerpoJson);
+  if (!parsed.success) {
+    const primero = parsed.error.issues[0];
+    return NextResponse.json(
+      { error: `${primero.path.join(".") || "cuerpo"}: ${primero.message}` },
+      { status: 400 }
+    );
   }
+  const { tipo, eventoId, datos } = parsed.data;
 
   if (!HAY_SUPABASE) {
     return NextResponse.json({ ok: true, modo: "demo", clave });
@@ -57,13 +104,7 @@ export async function POST(req: NextRequest) {
   try {
     switch (tipo) {
       case "resultado": {
-        const { peleaId, ganadorId, metodo, round, exhibicion } = datos as {
-          peleaId: string;
-          ganadorId: string | null;
-          metodo: string;
-          round?: number;
-          exhibicion?: boolean;
-        };
+        const { peleaId, ganadorId, metodo, round, exhibicion } = datos;
 
         // upsert por pelea_id: reenviar la misma operación no crea un segundo resultado.
         const { error } = await supabase.from("resultado").upsert(
@@ -98,7 +139,7 @@ export async function POST(req: NextRequest) {
       }
 
       case "pesaje": {
-        const { inscripcionId, peso } = datos as { inscripcionId: string; peso: number };
+        const { inscripcionId, peso } = datos;
         const { error } = await supabase
           .from("inscripcion")
           .update({ peso_pesaje: peso, estado: "pesada" })
@@ -108,10 +149,7 @@ export async function POST(req: NextRequest) {
       }
 
       case "asistencia": {
-        const { inscripcionId, presente } = datos as {
-          inscripcionId: string;
-          presente: boolean;
-        };
+        const { inscripcionId, presente } = datos;
         const { error } = await supabase
           .from("inscripcion")
           .update({ estado: presente ? "aprobada" : "ausente" })
@@ -123,16 +161,7 @@ export async function POST(req: NextRequest) {
       case "inscripcion": {
         // Coincide con la resolución que antes hacía cargarListaClub: el alumno
         // se busca primero en el registro compartido por documento; si no existe, se crea.
-        const fila = datos as {
-          nombre: string;
-          documento: string;
-          nacimiento: string;
-          sexo: string;
-          peso: string;
-          modalidad: string;
-          telefono?: string | null;
-          email?: string | null;
-        };
+        const fila = datos;
         const [nombres, ...resto] = fila.nombre.split(" ");
         const apellidos = resto.join(" ");
 

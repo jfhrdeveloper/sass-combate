@@ -65,35 +65,57 @@
 
 ## 5. Layout de carpetas y módulos
 
+Reorganizado en la sesión 2026-07-31 (91 archivos, casi todos solo cambios de
+ruta de import) para separar por tipo de responsabilidad en vez de tener todo
+en un `src/lib/` único:
+
 ```
-src/app/                     rutas (App Router), server actions en acciones.ts
-src/app/api/**/route.ts      endpoints PDF y sincronización offline
-src/components/ui/           componentes base (Boton, Badge, Card, Input, Formulario, TarjetaPelea)
+src/app/                     rutas (App Router)
+src/app/api/**/route.ts      endpoints de pago, PDF y sincronización offline
+src/components/ui/           componentes base (Boton, Insignia, Card, Input, Formulario, TarjetaPelea)
 src/components/nav-landing.tsx, footer-landing.tsx   navbar/footer de la landing y páginas legales
 src/components/theme-toggle.tsx                      botón claro/oscuro (persiste en localStorage)
-src/lib/types.ts             modelo del dominio y cálculo de duración de pelea
-src/lib/emparejador.ts       motor de emparejamiento (función pura, con pruebas)
-src/lib/horarios.ts          agenda en cascada y cálculo de retraso (con pruebas)
-src/lib/nivel.ts             nivel del atleta según cortes WAKO (espejo de la función SQL nivel_por_peleas)
-src/lib/datos.ts             datos demo + detección de Supabase (HAY_SUPABASE)
-src/lib/auth.ts              sesión, academias del usuario, jerarquía de roles
-src/lib/pagos.ts             lógica de pagos y comprobantes
-src/lib/pagos/culqi.ts       llamada REST al cargo de Culqi (pago con tarjeta), reusada por inscripciones y por /app/plan
-src/lib/reclamos.ts          Libro de Reclamaciones: crear (público), listar/responder (staff)
-src/lib/planes.ts            límites del plan Gratis (eventos/inscritos) y si un plan pagado sigue vigente
-src/lib/publico.ts           datos de /e/[org]/[evento] y /p/[token] (vistas anon / token + service_role)
-src/lib/atletas.ts           registro compartido de atletas entre academias
-src/lib/lista-club.ts        importación de listas de alumnos por club
-src/lib/notificaciones/      aviso al peleador (email/SMS/WhatsApp/push) cuando su pelea se acerca
-src/lib/pdf/documentos.tsx   plantillas @react-pdf/renderer (credenciales, acta)
-src/lib/offline/db.ts        cola de operaciones e Dexie (IndexedDB)
-src/lib/offline/sincronizacion.ts  reintentos con backoff hasta 30s
-src/lib/supabase/client.ts   cliente Supabase de navegador
-src/lib/supabase/server.ts   cliente Supabase de servidor (cookies de Next)
-src/lib/supabase/admin.ts    cliente `service_role` (solo rutas de servidor ya verificadas)
+src/components/sidebar-app.tsx, bottom-nav-app.tsx    navegación de /app, filtrada por rol
+
+src/actions/                 Server Actions divididas por dominio (cuenta, academia,
+                              eventos, atletas, pagos, reclamos) — antes un solo
+                              src/app/acciones.ts de 493 líneas
+src/services/                capa de consultas a Supabase: consultas.ts (eventos, áreas,
+                              peleas, inscripciones, categorías, historial de planes),
+                              atletas.ts, auth.ts, pagos.ts, publico.ts, reclamos.ts,
+                              auditoria.ts, offline-db.ts; e integraciones de terceros
+                              (pagos/culqi.ts, notificaciones/)
+src/utils/                   funciones puras sin estado de Supabase: format.ts, cn.ts,
+                              lista-club.ts, imagen.ts (comprime/valida imágenes subidas
+                              antes de enviarlas — comprobantes de pago), rate-limit.ts
+                              (best-effort en memoria para rutas de cobro)
+src/hooks/                   use-sincronizacion.ts (cola offline)
+src/config/                  env.ts (validación Zod de env vars), roles.ts, contacto.ts, nav-app.ts
+src/types/                   modelo del dominio: Pelea/Inscripcion/Area/Evento,
+                              ModalidadCodigo/Disciplina/NOMBRE_MODALIDAD/DISCIPLINA_POR_MODALIDAD
+                              (catálogo de disciplinas soportadas), MetodoCodigo/METODOS_POR_DISCIPLINA
+                              (vocabulario de victoria por disciplina), CategoriaPeso
+
+src/lib/                     inicialización de clientes + lógica de dominio pura sin una
+                              carpeta obvia:
+  emparejador.ts               motor de emparejamiento (función pura, con pruebas)
+  horarios.ts                  agenda en cascada y cálculo de retraso (con pruebas)
+  nivel.ts                     nivel del atleta según cortes WAKO (espejo de nivel_por_peleas)
+  categorias.ts                categoriaDePeso: etiqueta de categoría por peso/sexo (con pruebas;
+                                NO participa del emparejador, ver §10)
+  planes.ts                    límites del plan Gratis y si un plan pagado sigue vigente
+  paginacion.ts                paginar() + <Paginador>
+  seo.ts                       URL_BASE/urlEvento/desdeSlug
+  datos.ts                     datos demo (INSCRIPCIONES_DEMO, CATEGORIAS_DEMO, etc.) +
+                                detección de Supabase (HAY_SUPABASE)
+  pdf/documentos.tsx            plantillas @react-pdf/renderer (credenciales, acta)
+  supabase/client.ts            cliente Supabase de navegador
+  supabase/server.ts            cliente Supabase de servidor (cookies de Next)
+  supabase/admin.ts             cliente `service_role` (solo rutas de servidor ya verificadas)
+
 src/middleware.ts            subdominio de academia → ruta interna + refresco de sesión
 supabase/migrations/         esquema, RLS, vistas públicas, triggers (fuente única del schema)
-tests/                       pruebas de emparejador, horarios, lista-club, nivel
+tests/                       pruebas de emparejador, horarios, lista-club, nivel, categorias, rate-limit
 ```
 
 ## 6. Servicios externos e integraciones
@@ -173,7 +195,8 @@ Las cuatro integraciones de notificación son independientes entre sí: cada una
 
 - **Las horas no se escriben, se calculan.** `construirAgenda` (`src/lib/horarios.ts`) parte de la hora de inicio de cada área y suma duraciones; nunca debe aparecer un campo de hora editable a mano.
 - **El subdominio no es seguridad.** El middleware solo resuelve qué organización se mira. La autorización real vive en RLS.
-- **El emparejador propone, el organizador decide.** Nunca crea peleas directamente.
+- **El emparejador propone, el organizador decide.** Nunca crea peleas directamente. Cruza por tolerancia porcentual de peso (`maxDifPesoPct`), no por categorías rígidas.
+- **Las categorías de peso con nombre (`categoria`, tabla existente desde el primer commit) son solo una etiqueta visual**, calculada por `categoriaDePeso()` (`src/lib/categorias.ts`) y mostrada junto al peso de pesaje — decisión explícita para no acoplar el emparejador a rangos fijos que el organizador podría definir mal o dejar sin cubrir a alguien. Si en el futuro se decide que sí deben restringir el emparejamiento, es un cambio de diseño aparte, no algo que este campo ya resuelve.
 - **El registro de atletas es compartido entre academias a propósito** (tabla `atleta`, identificada por documento) para evitar que un peleador con historial se inscriba como debutante en otra academia. El detalle de cada evento sigue siendo privado por organización; solo el resumen (`v_resumen_atleta`) es compartido.
 - **El nivel del atleta** se calcula igual en `src/lib/nivel.ts` y en la función SQL `nivel_por_peleas` — deben mantenerse sincronizados si cambian los cortes WAKO.
 - **No importar `service_role` ni el cliente de servidor en código `"use client"`.**

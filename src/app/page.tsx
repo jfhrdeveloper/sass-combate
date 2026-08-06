@@ -178,7 +178,7 @@ export default function Landing() {
             <div className="animate-fade-in-up mt-8 flex flex-wrap gap-3" style={{ animationDelay: "0.39s" }}>
               <Link
                 href="/registro"
-                className="rounded-lg bg-slate-900 px-6 py-3 font-display text-lg font-semibold text-white transition-all hover:scale-105 hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+                className={cn(estilos({ variante: "solido" }), "h-auto px-6 py-3 text-lg transition-all hover:scale-105")}
               >
                 Crear mi academia
               </Link>

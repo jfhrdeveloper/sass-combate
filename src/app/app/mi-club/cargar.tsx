@@ -66,7 +66,7 @@ export function CargarLista({ eventoId }: { eventoId: string }) {
         </div>
       </div>
 
-      <p className="mt-1 text-sm text-slate-600">
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
         Pega las columnas desde tu Excel, una línea por alumno: nombre completo,
         documento, fecha de nacimiento, sexo, peso y modalidad. Si agregas teléfono
         y correo al final (opcional), le avisamos cuando su pelea se acerque.
@@ -83,7 +83,7 @@ export function CargarLista({ eventoId }: { eventoId: string }) {
       {filas.length > 0 && (
         <div className="mt-3 overflow-hidden rounded-xl border border-borde bg-panel">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500">
+            <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="px-3 py-2 font-medium">Nombre</th>
                 <th className="px-3 py-2 font-medium">Documento</th>
@@ -132,7 +132,7 @@ export function CargarLista({ eventoId }: { eventoId: string }) {
         </Boton>
       </form>
 
-      <p className="mt-3 text-xs text-slate-400">
+      <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">
         Si un alumno ya compitió antes, el sistema lo reconoce por su documento y
         toma su récord para calcular el nivel. Sin señal, la inscripción queda
         guardada en este dispositivo y se envía sola en cuanto vuelva.

@@ -121,7 +121,7 @@ export function FormularioReclamo() {
 
       <Aviso error={estado.error} />
       <BotonEnvio>Enviar</BotonEnvio>
-      <p className="text-xs text-slate-400">
+      <p className="text-xs text-slate-400 dark:text-slate-500">
         La formulación del reclamo no impide acudir a otras vías de solución de
         controversias ni es requisito previo para interponer una denuncia ante
         el INDECOPI.

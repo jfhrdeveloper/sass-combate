@@ -84,3 +84,89 @@ export async function crearEvento(
   revalidatePath("/app");
   redirect(`/app/eventos/${data.id}`);
 }
+
+const categoriaSchema = z
+  .object({
+    eventoId: z.string().min(1),
+    nombre: z.string().min(1, "Escribe un nombre para la categoría"),
+    modalidad: z.string().min(1, "Elige una modalidad"),
+    sexo: z.enum(["M", "F"]).optional(),
+    pesoMin: z.coerce.number().positive().optional(),
+    pesoMax: z.coerce.number().positive().optional(),
+  })
+  .refine((d) => d.pesoMin != null || d.pesoMax != null, {
+    message: "Define al menos un peso mínimo o máximo (iguales para un peso exacto)",
+    path: ["pesoMin"],
+  });
+
+/**
+ * Crea una categoría de peso con nombre para un evento — solo una etiqueta
+ * visual (ver `CategoriaPeso` en `src/types/index.ts`), no toca el
+ * emparejador. `categoria.modalidad_id` es un uuid en la base; acá se
+ * resuelve desde el `codigo` que manda el formulario, prefiriendo una
+ * modalidad propia de la organización sobre la del catálogo global si
+ * ambas existen con el mismo código.
+ */
+export async function crearCategoria(
+  _prev: EstadoFormulario,
+  datos: FormData
+): Promise<EstadoFormulario> {
+  const parsed = categoriaSchema.safeParse({
+    eventoId: datos.get("eventoId"),
+    nombre: datos.get("nombre"),
+    modalidad: datos.get("modalidad"),
+    sexo: datos.get("sexo") || undefined,
+    pesoMin: datos.get("pesoMin") || undefined,
+    pesoMax: datos.get("pesoMax") || undefined,
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  if (!HAY_SUPABASE) return { ok: "Modo demo: la categoría no se guarda." };
+
+  const supabase = await crearClienteServidor();
+  const { data: academias } = await supabase.from("v_mis_academias").select("id").limit(1);
+  const organizacionId = academias?.[0]?.id;
+  if (!organizacionId) return { error: "No tienes una academia" };
+
+  const { data: modalidades } = await supabase
+    .from("modalidad")
+    .select("id, organizacion_id")
+    .eq("codigo", parsed.data.modalidad)
+    .or(`organizacion_id.eq.${organizacionId},organizacion_id.is.null`);
+  const modalidad =
+    modalidades?.find((m) => m.organizacion_id === organizacionId) ??
+    modalidades?.find((m) => m.organizacion_id === null);
+  if (!modalidad) return { error: "Modalidad no encontrada" };
+
+  const { error } = await supabase.from("categoria").insert({
+    organizacion_id: organizacionId,
+    evento_id: parsed.data.eventoId,
+    modalidad_id: modalidad.id,
+    nombre: parsed.data.nombre,
+    sexo: parsed.data.sexo ?? null,
+    peso_min: parsed.data.pesoMin ?? null,
+    peso_max: parsed.data.pesoMax ?? null,
+  });
+  if (error) return { error: "No se pudo crear la categoría" };
+
+  revalidatePath(`/app/eventos/${parsed.data.eventoId}`);
+  return { ok: "Categoría creada" };
+}
+
+export async function eliminarCategoria(
+  _prev: EstadoFormulario,
+  datos: FormData
+): Promise<EstadoFormulario> {
+  const eventoId = String(datos.get("eventoId") ?? "");
+  const categoriaId = String(datos.get("categoriaId") ?? "");
+  if (!eventoId || !categoriaId) return { error: "Faltan datos" };
+
+  if (!HAY_SUPABASE) return { ok: "Modo demo: no se guarda." };
+
+  const supabase = await crearClienteServidor();
+  const { error } = await supabase.from("categoria").delete().eq("id", categoriaId);
+  if (error) return { error: "No se pudo eliminar la categoría" };
+
+  revalidatePath(`/app/eventos/${eventoId}`);
+  return { ok: "Categoría eliminada" };
+}

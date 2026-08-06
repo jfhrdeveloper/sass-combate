@@ -24,7 +24,7 @@ export default async function PaginaMiClub({
   return (
     <main className="mx-auto max-w-3xl p-6">
       <h1 className="text-2xl font-semibold">Mi club</h1>
-      <p className="mt-1 text-sm text-slate-600">
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
         Inscribe a tus alumnos y paga por todos de una vez.
         {activo ? ` Evento activo: ${activo.nombre}.` : " No hay eventos abiertos."}
       </p>
@@ -53,7 +53,7 @@ export default async function PaginaMiClub({
           >
             <span>
               <span className="font-medium">{i.nombre}</span>
-              <span className="block text-xs text-slate-500">
+              <span className="block text-xs text-slate-500 dark:text-slate-400">
                 {i.edad ?? "sin edad"} años · {kg(i.peso_pesaje)} · {i.nivel}
               </span>
             </span>

@@ -104,7 +104,7 @@ export function BottomNavApp({
                       : "text-slate-700 hover:bg-fondo dark:text-slate-200"
                   )}
                 >
-                  <Icon size={18} className="text-slate-400" />
+                  <Icon size={18} className="text-slate-400 dark:text-slate-500" />
                   {label}
                 </Link>
               );
@@ -127,7 +127,7 @@ export function BottomNavApp({
                 type="submit"
                 className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-fondo dark:text-slate-200"
               >
-                <LogOut size={18} className="text-slate-400" />
+                <LogOut size={18} className="text-slate-400 dark:text-slate-500" />
                 Salir
               </button>
             </form>

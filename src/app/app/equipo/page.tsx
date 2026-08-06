@@ -19,17 +19,17 @@ export default function PaginaEquipo() {
   return (
     <main className="mx-auto max-w-2xl p-6">
       <h1 className="text-2xl font-semibold">Equipo</h1>
-      <p className="mt-1 text-sm text-slate-600">
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
         Invita a quien va a estar en la mesa de control el día del evento.
       </p>
 
       <form action={accion} className="mt-6 grid gap-4 rounded-xl border border-borde bg-panel p-5">
         <label className="grid gap-1 text-sm">
-          <span className="text-slate-600">Correo</span>
+          <span className="text-slate-600 dark:text-slate-400">Correo</span>
           <Campo name="email" type="email" required placeholder="mesa@academia.com" />
         </label>
         <label className="grid gap-1 text-sm">
-          <span className="text-slate-600">Rol</span>
+          <span className="text-slate-600 dark:text-slate-400">Rol</span>
           <select
             name="rol"
             defaultValue="mesa"

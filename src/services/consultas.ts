@@ -2,13 +2,15 @@ import { crearClienteServidor } from "@/lib/supabase/server";
 import {
   AREAS_DEMO,
   BLOQUES_DEMO,
+  CATEGORIAS_DEMO,
   EVENTO_DEMO,
+  EVENTOS_DEMO,
   HAY_SUPABASE,
   INSCRIPCIONES_DEMO,
   PELEAS_DEMO,
   type Evento,
 } from "@/lib/datos";
-import type { Area, Bloque, Inscripcion, Pelea } from "@/types";
+import type { Area, Bloque, CategoriaPeso, Inscripcion, ModalidadCodigo, Pelea } from "@/types";
 
 /**
  * Cada consulta pide solo su propia tabla y confía en RLS para el filtrado por
@@ -17,7 +19,7 @@ import type { Area, Bloque, Inscripcion, Pelea } from "@/types";
  */
 
 export async function listarEventos(_organizacionId: string): Promise<Evento[]> {
-  if (!HAY_SUPABASE) return [EVENTO_DEMO];
+  if (!HAY_SUPABASE) return EVENTOS_DEMO;
 
   const supabase = await crearClienteServidor();
   const { data } = await supabase
@@ -29,7 +31,7 @@ export async function listarEventos(_organizacionId: string): Promise<Evento[]> 
 }
 
 export async function obtenerEvento(id: string): Promise<Evento | null> {
-  if (!HAY_SUPABASE) return EVENTO_DEMO;
+  if (!HAY_SUPABASE) return EVENTOS_DEMO.find((e) => e.id === id) ?? EVENTO_DEMO;
 
   const supabase = await crearClienteServidor();
   const { data } = await supabase
@@ -198,4 +200,27 @@ export async function listarHistorialPlanes(): Promise<CompraPlan[]> {
     ...f,
     evento_nombre: f.evento?.nombre ?? null,
   }));
+}
+
+/**
+ * Categorías de peso del evento (etiqueta, no matching: ver la nota en
+ * `CategoriaPeso`). `modalidad_id` se resuelve al `codigo` de la modalidad
+ * embebiendo la tabla en el select, para no obligar al llamador a manejar
+ * uuids que no usa en ningún otro lado del modo demo.
+ */
+export async function listarCategorias(eventoId: string): Promise<CategoriaPeso[]> {
+  if (!HAY_SUPABASE) return CATEGORIAS_DEMO;
+
+  const supabase = await crearClienteServidor();
+  const { data } = await supabase
+    .from("categoria")
+    .select("id, nombre, sexo, peso_min, peso_max, modalidad:modalidad_id (codigo)")
+    .eq("evento_id", eventoId)
+    .order("peso_min");
+
+  type Fila = Omit<CategoriaPeso, "modalidad"> & { modalidad: { codigo: ModalidadCodigo } | null };
+
+  return ((data ?? []) as unknown as Fila[])
+    .filter((f) => f.modalidad != null)
+    .map((f) => ({ ...f, modalidad: f.modalidad!.codigo }));
 }

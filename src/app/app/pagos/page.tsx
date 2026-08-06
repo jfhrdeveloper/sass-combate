@@ -31,7 +31,7 @@ export default async function PaginaPagos({
   return (
     <main className="mx-auto max-w-3xl p-6">
       <h1 className="text-2xl font-semibold">Pagos</h1>
-      <p className="mt-1 text-sm text-slate-600">
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
         Comprobantes enviados por los coaches. Al aprobar uno, sus inscripciones
         quedan pagadas automáticamente.
       </p>
@@ -61,7 +61,7 @@ export default async function PaginaPagos({
                 <p className="font-medium">
                   {p.club ?? "Sin club"} · S/ {Number(p.monto).toFixed(2)}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   {p.metodo}
                   {p.referencia ? ` · operación ${p.referencia}` : ""} ·{" "}
                   {fechaLarga(p.creado_en)}
@@ -88,7 +88,7 @@ export default async function PaginaPagos({
       </ul>
 
       {todos.length === 0 && (
-        <p className="mt-10 text-center text-sm text-slate-500">
+        <p className="mt-10 text-center text-sm text-slate-500 dark:text-slate-400">
           Todavía no hay comprobantes.
         </p>
       )}
