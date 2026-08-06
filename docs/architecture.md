@@ -56,9 +56,9 @@
 
 ## 4. Autenticación y autorización
 
-- **Mecanismo:** sesión de Supabase Auth (cookies), correo/contraseña o Google OAuth. Se refresca en `src/middleware.ts` en cada request.
+- **Mecanismo:** sesión de Supabase Auth (cookies), correo/contraseña o Google OAuth. Se refresca en `src/middleware.ts`, pero **solo en rutas protegidas o solo-anónimas** (ver abajo), no en cada request.
 - **Dónde se valida:**
-  - Middleware (`src/middleware.ts`): redirige `/app`, `/mesa`, `/nueva-academia` a `/entrar` si no hay usuario; redirige `/entrar`/`/registro` a `/app` si ya hay sesión. Esto es **solo conveniencia de navegación**.
+  - Middleware (`src/middleware.ts`): redirige `/app`, `/mesa`, `/nueva-academia` a `/entrar` si no hay usuario; redirige `/entrar`/`/registro` a `/app` si ya hay sesión. Esto es **solo conveniencia de navegación**. `supabase.auth.getUser()` es una llamada de red real al servidor de Auth, no un chequeo local, así que el middleware solo la invoca cuando la ruta pedida es una de esas dos listas (`PROTEGIDAS`/`SOLO_ANONIMO`) — rutas públicas de alto tráfico como `/e/[org]/[evento]` o `/p/[token]` (cientos de espectadores anónimos en un evento en vivo) nunca la disparan. Corregido en la auditoría de backend del 2026-08-06; antes se llamaba sin condición en cualquier ruta no estática.
   - RLS en Postgres (`supabase/migrations/20260101000002_rls_y_funciones.sql`): esto es la autorización real. Ninguna ruta de servidor debe asumir que el middleware ya filtró los datos.
 - **Roles** (tabla `miembro`, jerarquía en `src/lib/auth.ts::JERARQUIA`): `dueno` > `admin` > `mesa` > `coach` > `juez` > `lector`. `puede(rol, minimo)` compara jerarquía.
 - **Excepción:** en modo demo (`HAY_SUPABASE === false`) todo el mundo es `dueno` de una academia demo (`ACADEMIA_DEMO`), sin login real.

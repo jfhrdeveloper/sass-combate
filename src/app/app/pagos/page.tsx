@@ -91,6 +91,17 @@ export default async function PaginaPagos({
               </p>
             )}
 
+            {p.comprobante_url_firmada && (
+              <a
+                href={p.comprobante_url_firmada}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 inline-block text-xs font-medium text-slate-600 underline underline-offset-2 dark:text-slate-300"
+              >
+                Ver comprobante
+              </a>
+            )}
+
             {p.estado === "en_revision" && ["dueno", "admin"].includes(academia.rol) && (
               <RevisarPago pagoId={p.id} monto={Number(p.monto)} />
             )}

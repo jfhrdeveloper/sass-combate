@@ -4,6 +4,16 @@ import { crearClienteServidor } from "@/lib/supabase/server";
 import { HAY_SUPABASE } from "@/lib/datos";
 import { avisarPeleasCercanas } from "@/services/notificaciones";
 import { LIMITE_INSCRITOS_GRATIS, eventoDesbloqueado } from "@/lib/planes";
+import { limiteExcedido, ipDelRequest } from "@/utils/rate-limit";
+
+/* A diferencia de /api/pagos/*, este endpoint recibe tráfico legítimo mucho
+   más seguido: cada item de la cola offline es un POST propio, y varios
+   dispositivos (mesa, coaches cargando su lista) pueden sincronizar al mismo
+   tiempo. 60 cada minuto por IP deja pasar una racha real de sincronización
+   sin frenar a nadie, y sigue cortando un loop descontrolado. Ver
+   utils/rate-limit.ts (best-effort, no es la defensa real). */
+const MAX_INTENTOS = 60;
+const VENTANA_MS = 60 * 1000;
 
 /* Un schema por tipo de operación de la cola offline — antes cada `case` del
    switch de abajo casteaba `datos` con `as {...}` (solo compile-time, no
@@ -54,6 +64,13 @@ const esquemaCuerpo = z.discriminatedUnion("tipo", [
  * reconoce y responde igual sin volver a aplicarla.
  */
 export async function POST(req: NextRequest) {
+  if (limiteExcedido(`sincronizar:${ipDelRequest(req)}`, MAX_INTENTOS, VENTANA_MS)) {
+    return NextResponse.json(
+      { error: "Demasiadas operaciones seguidas. Espera un momento e intenta de nuevo." },
+      { status: 429 }
+    );
+  }
+
   const clave = req.headers.get("Idempotency-Key");
   if (!clave) {
     return NextResponse.json({ error: "falta la clave de idempotencia" }, { status: 400 });

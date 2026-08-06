@@ -15,9 +15,20 @@ export async function middleware(req: NextRequest) {
   const url = envPublico.NEXT_PUBLIC_SUPABASE_URL;
   const key = envPublico.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const ruta = req.nextUrl.pathname;
+  const esProtegida = PROTEGIDAS.some((p) => ruta.startsWith(p));
+  const esSoloAnonimo = SOLO_ANONIMO.some((p) => ruta.startsWith(p));
 
-  // Sin Supabase configurado el proyecto corre en modo demo y no hay sesion que validar.
-  if (url && key) {
+  /**
+   * `getUser()` valida el token contra el servidor de Auth de Supabase: es
+   * una llamada de red real, no un chequeo local. Sin Supabase configurado
+   * el proyecto corre en modo demo y no hay sesión que validar; y aunque
+   * haya Supabase, no hace falta resolver sesión en rutas que no la usan
+   * (la agenda pública `/e/[org]/[evento]`, `/p/[token]`, la landing...).
+   * Esas son justo las que reciben más tráfico en un evento en vivo (cientos
+   * de espectadores anónimos mirando el mismo evento desde el celular), así
+   * que evitar la llamada ahí es lo que más importa.
+   */
+  if (url && key && (esProtegida || esSoloAnonimo)) {
     const supabase = createServerClient(url, key, {
       cookies: {
         getAll: () => req.cookies.getAll(),
@@ -33,13 +44,13 @@ export async function middleware(req: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user && PROTEGIDAS.some((p) => ruta.startsWith(p))) {
+    if (!user && esProtegida) {
       const destino = new URL("/entrar", req.url);
       destino.searchParams.set("volver", ruta);
       return NextResponse.redirect(destino);
     }
 
-    if (user && SOLO_ANONIMO.some((p) => ruta.startsWith(p))) {
+    if (user && esSoloAnonimo) {
       return NextResponse.redirect(new URL("/app", req.url));
     }
   }
@@ -57,10 +68,8 @@ export async function middleware(req: NextRequest) {
   if (host.endsWith(raiz) && host !== raiz) {
     const sub = host.slice(0, host.length - raiz.length - 1);
     const yaEsPublica = ruta.startsWith("/e/") || ruta.startsWith("/p/");
-    const esApp =
-      PROTEGIDAS.some((p) => ruta.startsWith(p)) || SOLO_ANONIMO.some((p) => ruta.startsWith(p));
 
-    if (sub && !RESERVADOS.has(sub) && !yaEsPublica && !esApp) {
+    if (sub && !RESERVADOS.has(sub) && !yaEsPublica && !esProtegida && !esSoloAnonimo) {
       return NextResponse.rewrite(new URL(`/e/${sub}${ruta}`, req.url));
     }
   }

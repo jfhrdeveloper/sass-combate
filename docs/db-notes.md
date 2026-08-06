@@ -23,12 +23,13 @@ Correr en el SQL Editor de Supabase, en este orden exacto:
 | `supabase/migrations/20260101000014_descuento_pago.sql` | `pago.descuento_tipo`/`descuento_valor` (monto fijo o porcentaje, puntual por pago) + `pago.monto_final` (columna generada, el descuento ya aplicado). Se agrega al aprobar el pago (dueño/admin), no al registrarlo. |
 | `supabase/migrations/20260101000015_auditoria_con_nombre.sql` | Política `perfil_companeros` (lee el perfil de cualquiera que comparta organización vía `miembro`, además de `perfil_propio`) + vista `v_auditoria` (join explícito `auditoria`+`perfil`, `security_invoker`) para que `/app/auditoria` muestre el nombre de quien hizo el cambio en vez del UUID crudo. |
 | `supabase/migrations/20260101000016_equipo_gestion.sql` | Política `miembro_eliminacion` (solo dueño/admin de la misma organización) — `miembro` no tenía ninguna política de escritura fuera de las funciones `security definer` que la insertan. Vista `v_equipo` (join explícito `miembro`+`perfil`, mismo motivo que `v_auditoria`) para que `/app/equipo` liste a quién ya es miembro, no solo el formulario de invitar. |
+| `supabase/migrations/20260101000017_indices_evento.sql` | Índices en `pelea.evento_id`, `area.evento_id`, `bloque.evento_id`, `categoria.evento_id` — Postgres no indexa foreign keys solo; esas columnas se filtran seguido (agenda pública, panel del evento) y el costo crece con el volumen total de la plataforma, no solo del evento. |
 
 Opcional, después de las migraciones: `supabase/seed_kick1.sql` carga el evento real de ejemplo (47 clubes, 154 peleadores, 78 peleas — el torneo KICK1 Contender 2026).
 
 ## Storage
 
-Falta crear a mano en Supabase Storage: un bucket **privado** llamado `comprobantes` (capturas de pago). No se crea por migración SQL.
+Falta crear a mano en Supabase Storage: un bucket **privado** llamado `comprobantes` (capturas de pago). No se crea por migración SQL. El bucket no tiene ninguna política de Storage propia (ni de lectura ni de escritura vía RLS de `storage.objects`): `registrarPago` sube el archivo bajo la sesión normal del coach (el insert en `pago` ya está protegido por su propia RLS), y `listarPagos()` (`src/services/pagos.ts`) genera una URL firmada con `service_role` para que dueño/admin pueda ver la imagen al revisar — no hace falta una política de Storage porque la fila de `pago` ya pasó por RLS antes de decidir qué comprobante firmar.
 
 ## Invariantes de datos a no romper
 

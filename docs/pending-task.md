@@ -11,7 +11,7 @@
 - [ ] Desplegar a Vercel (o el hosting elegido) y configurar dominio con soporte de subdominios por academia.
 
 ## Pendientes activos
-- [ ] **Auditoría grande de interfaz/backend pedida el 2026-08-06** (ver esa entrada de bitácora): el usuario pidió implementar las 7 fases de una vez. Fases 1 a 5 cerradas (ver bitácora de hoy). Quedan las fases 6 y 7 (backend robusto para 300 espectadores, animaciones + skeleton).
+- [ ] **Auditoría grande de interfaz/backend pedida el 2026-08-06** (ver esa entrada de bitácora): el usuario pidió implementar las 7 fases de una vez. Fases 1 a 6 cerradas (ver bitácora de hoy). Queda la fase 7 (animaciones framer-motion, skeleton `boneyard-js` piloteado, verificación final).
 - [ ] **No existe eliminar atleta, a propósito** (ver bitácora de Fase 5, 2026-08-06): `atleta` es un registro compartido entre academias; borrarlo arrastraría por cascada el historial de pelea de todas las academias que lo comparten, no solo la que borra. No hay política de RLS de `delete` sobre esa tabla (nunca existió, no es algo que se haya quitado). Si se necesita en el futuro, es una decisión de producto aparte (¿soft delete?, ¿solo quien lo creó puede pedirlo?), no un botón simple.
 - [x] Extender la inscripción desde el panel para pasar por la cola offline (hoy va directo contra el servidor; solo resultados, pesaje y asistencia usan la cola).
 - [x] Formalizar tokens de color para estados (éxito/aviso/error/info) en `tailwind.config.ts` — hoy se usan utilidades sueltas.
@@ -26,6 +26,21 @@
 - [ ] **No existe ninguna UI para crear/editar áreas de un evento** (ring/tatami/jaula, con sus modalidades y hora de inicio) — hoy `AREAS_DEMO` es el único ejemplo que existe; en producción real habría que insertarlas a mano en Supabase. Descubierto el 2026-08-04 al ampliar el catálogo de modalidades (ver esa entrada); no se construyó, es alcance separado y bastante grande (una pantalla de gestión completa).
 - [ ] `mesa/[eventoId]/page.tsx` sigue usando `CATEGORIAS_DEMO`/`PELEAS_DEMO`/`AREAS_DEMO` fijos (mismo gap de siempre, ver el pendiente de arriba) — el chip de categoría de peso que se agregó el 2026-08-04 hereda esa misma limitación: en real necesitaría `listarCategorias` server-side igual que `eventos/[id]/page.tsx`.
 - [x] Descuento al aprobar un pago de inscripción — ver bitácora de hoy (`pago.descuento_tipo`/`descuento_valor`, `RevisarPago`).
+
+### 2026-08-06 (8) — Auditoría grande: Fase 6 (backend robusto para 300 espectadores)
+- **Qué cambió:**
+  - **El hallazgo más importante del reporte, corregido:** `src/middleware.ts` llamaba `supabase.auth.getUser()` (una llamada de red real al servidor de Auth de Supabase, no un chequeo local) en cualquier ruta no estática, incluidas las públicas. Ahora solo se llama cuando la ruta pedida está en `PROTEGIDAS` o `SOLO_ANONIMO` — la agenda pública (`/e/[org]/[evento]`, `/p/[token]`), que es la que recibe el tráfico de espectadores en un evento en vivo, ya no la dispara nunca. El resto del middleware (resolución de subdominio) no se tocó, solo reusa las dos banderas ya calculadas en vez de recalcularlas dos veces.
+  - **Rate limit en `/api/sincronizar`:** no tenía, a diferencia de `/api/pagos/*`. 60 intentos por minuto por IP (más generoso que el de pagos, a propósito: acá el tráfico legítimo es mucho más seguido, cada item de la cola offline es un POST propio y varios dispositivos pueden sincronizar a la vez).
+  - **Índices faltantes:** migración `20260101000017_indices_evento.sql`, `pelea.evento_id`/`area.evento_id`/`bloque.evento_id`/`categoria.evento_id` (Postgres no indexa foreign keys solo).
+  - **El comprobante de pago ya se puede ver al aprobar:** `listarPagos()` (`src/services/pagos.ts`) genera una URL firmada (`service_role`, expira en 1 hora) para cada pago con `comprobante_url` — el bucket `comprobantes` es privado y nunca tuvo ninguna política de Storage propia, así que no había forma de leerlo de otro modo sin agregar una política nueva; usar `service_role` acá es seguro porque la fila de `pago` ya pasó por RLS antes de decidir qué comprobante firmar. `/app/pagos` muestra un enlace "Ver comprobante" cuando hay imagen.
+  - **Pesaje pagina:** mismo mecanismo client-side que ya se usó en la lista "sin rival" del emparejador (Fase 4): `matchMedia` directo (sin cookie, la pantalla ya es 100% cliente), 4/8 según el breakpoint, aplicado sobre la lista ya filtrada por la búsqueda que existía. La búsqueda resetea a la página 1 al escribir.
+  - Documentado en `architecture.md` (§4, el porqué del middleware) y `db-notes.md` (los índices nuevos y cómo funciona la URL firmada del comprobante, sin política de Storage).
+  - `npm run typecheck`, `npm run lint`, `npm test` (60 pruebas) y `npm run build` pasan. Verificado con `curl` contra el servidor de desarrollo que las rutas principales (landing, agenda pública, pesaje, pagos) siguen respondiendo 200 después de los cambios.
+- **Por qué:** pedido explícito del usuario, Fase 6 del plan de 7.
+- **Pendiente / riesgos conocidos:**
+  - La URL firmada del comprobante no se pudo verificar de punta a punta (necesita un Supabase real con el bucket `comprobantes` ya creado a mano, ver la nota de Storage en `db-notes.md`) — el código está razonado contra la API de Supabase Storage, no probado contra un proyecto real.
+  - `/api/sincronizar` sigue haciendo 8-10 llamadas secuenciales a Supabase por operación de inscripción (hallazgo del reporte original, "medio" impacto) — no se tocó esta sesión, el rate limit es una capa aparte de eso.
+  - Falta la fase 7.
 
 ### 2026-08-06 (7) — Auditoría grande: Fase 5 (CRUD completo de categorías, equipo y atletas)
 - **Qué cambió:**

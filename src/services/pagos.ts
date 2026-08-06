@@ -1,4 +1,5 @@
 import { crearClienteServidor } from "@/lib/supabase/server";
+import { crearClienteServicio } from "@/lib/supabase/admin";
 import { HAY_SUPABASE } from "@/lib/datos";
 import { aplicarDescuento, type TipoDescuento } from "@/lib/descuentos";
 
@@ -9,6 +10,11 @@ export interface Pago {
   monto: number;
   referencia: string | null;
   comprobante_url: string | null;
+  /** URL firmada y temporal para ver la imagen (el bucket `comprobantes` es
+   *  privado, no tiene política de lectura propia; se firma con
+   *  `service_role` porque `listarPagos()` ya filtró por RLS qué pagos puede
+   *  ver este usuario, no es una lectura sin verificar de por medio). */
+  comprobante_url_firmada: string | null;
   estado: "en_revision" | "aprobado" | "rechazado";
   motivo_rechazo: string | null;
   descuento_tipo: TipoDescuento | null;
@@ -30,6 +36,7 @@ const DEMO: Pago[] = [
     monto: 300,
     referencia: "00123456",
     comprobante_url: null,
+    comprobante_url_firmada: null,
     estado: "en_revision",
     motivo_rechazo: null,
     descuento_tipo: null,
@@ -43,6 +50,7 @@ const DEMO: Pago[] = [
     monto: 450,
     referencia: "88991122",
     comprobante_url: null,
+    comprobante_url_firmada: null,
     estado: "aprobado",
     motivo_rechazo: null,
     descuento_tipo: "porcentaje",
@@ -56,6 +64,7 @@ const DEMO: Pago[] = [
     monto: 150,
     referencia: "55003321",
     comprobante_url: null,
+    comprobante_url_firmada: null,
     estado: "rechazado",
     motivo_rechazo: "La captura no coincide con el monto declarado.",
     descuento_tipo: null,
@@ -69,6 +78,7 @@ const DEMO: Pago[] = [
     monto: 250,
     referencia: null,
     comprobante_url: null,
+    comprobante_url_firmada: null,
     estado: "en_revision",
     motivo_rechazo: null,
     descuento_tipo: null,
@@ -82,6 +92,7 @@ const DEMO: Pago[] = [
     monto: 300,
     referencia: "ch_9f2a7c",
     comprobante_url: null,
+    comprobante_url_firmada: null,
     estado: "aprobado",
     motivo_rechazo: null,
     descuento_tipo: null,
@@ -95,6 +106,7 @@ const DEMO: Pago[] = [
     monto: 100,
     referencia: "00998877",
     comprobante_url: null,
+    comprobante_url_firmada: null,
     estado: "en_revision",
     motivo_rechazo: null,
     descuento_tipo: null,
@@ -108,6 +120,7 @@ const DEMO: Pago[] = [
     monto: 150,
     referencia: "77123456",
     comprobante_url: null,
+    comprobante_url_firmada: null,
     estado: "aprobado",
     motivo_rechazo: null,
     descuento_tipo: "monto",
@@ -121,6 +134,7 @@ const DEMO: Pago[] = [
     monto: 300,
     referencia: "00112233",
     comprobante_url: null,
+    comprobante_url_firmada: null,
     estado: "en_revision",
     motivo_rechazo: null,
     descuento_tipo: null,
@@ -134,6 +148,7 @@ const DEMO: Pago[] = [
     monto: 150,
     referencia: "99887766",
     comprobante_url: null,
+    comprobante_url_firmada: null,
     estado: "rechazado",
     motivo_rechazo: "No se registró ese número de operación.",
     descuento_tipo: null,
@@ -175,6 +190,7 @@ const DEMO_GENERADOS: Pago[] = Array.from({ length: 35 }, (_, i) => {
     monto: Math.round((100 + rand() * 500) / 10) * 10,
     referencia: estado === "en_revision" || estado === "aprobado" ? String(10000000 + Math.floor(rand() * 89999999)) : null,
     comprobante_url: null,
+    comprobante_url_firmada: null,
     estado,
     motivo_rechazo: estado === "rechazado" ? "La captura no coincide con el monto declarado." : null,
     descuento_tipo: null,
@@ -228,10 +244,24 @@ export async function listarPagos(): Promise<Pago[]> {
     )
     .order("creado_en", { ascending: false });
 
-  type Fila = Omit<Pago, "club"> & { club: { nombre: string } | null };
+  type Fila = Omit<Pago, "club" | "comprobante_url_firmada"> & { club: { nombre: string } | null };
+  const filas = (data ?? []) as unknown as Fila[];
 
-  return ((data ?? []) as unknown as Fila[]).map((p) => ({
+  // El bucket es privado y no tiene política de lectura propia (ver
+  // docs/db-notes.md): se firma con service_role porque la fila de `pago` ya
+  // pasó por RLS arriba, no es una lectura sin verificar.
+  const servicio = crearClienteServicio();
+  const firmadas = await Promise.all(
+    filas.map((p) =>
+      p.comprobante_url
+        ? servicio.storage.from("comprobantes").createSignedUrl(p.comprobante_url, 3600)
+        : Promise.resolve(null)
+    )
+  );
+
+  return filas.map((p, i) => ({
     ...p,
     club: p.club?.nombre ?? null,
+    comprobante_url_firmada: firmadas[i]?.data?.signedUrl ?? null,
   }));
 }
