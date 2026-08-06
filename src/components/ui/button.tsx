@@ -1,40 +1,40 @@
+"use client";
+
 import { forwardRef } from "react";
-import { cva, type VariantProps } from "class-variance-authority";
+import type { VariantProps } from "class-variance-authority";
+import { motion, type HTMLMotionProps } from "framer-motion";
 import { cn } from "@/utils/cn";
+import { estilos } from "./estilos-boton";
 
-/** Exportado para estilizar enlaces (`next/link`) como botón sin anidar un <button>. */
-export const estilos = cva(
-  "inline-flex items-center justify-center rounded-lg font-display font-semibold tracking-wide transition-colors disabled:opacity-50 disabled:pointer-events-none",
-  {
-    variants: {
-      variante: {
-        solido:
-          "bg-slate-900 text-white hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white",
-        contorno: "border border-borde bg-panel hover:bg-fondo",
-        roja: "bg-roja text-white hover:opacity-90",
-        azul: "bg-azul text-white hover:opacity-90",
-        fantasma: "hover:bg-slate-100 dark:hover:bg-white/10",
-      },
-      tamano: {
-        sm: "h-8 px-3 text-sm",
-        md: "h-10 px-4 text-base",
-        lg: "h-14 px-6 text-xl",
-        mesa: "h-24 px-6 text-3xl uppercase",
-      },
-    },
-    defaultVariants: { variante: "solido", tamano: "md" },
-  }
-);
+export { estilos };
 
-export type BotonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
-  VariantProps<typeof estilos>;
+export type BotonProps = HTMLMotionProps<"button"> & VariantProps<typeof estilos>;
 
-/** `forwardRef`: lo necesita Radix (`asChild` en `DialogTrigger`/`SelectTrigger`
- *  y similares) para adjuntar su propio ref al `<button>` real sin anidarlo
- *  dentro de otro elemento interactivo. */
+/**
+ * `forwardRef`: lo necesita Radix (`asChild` en `DialogTrigger`/`SelectTrigger`
+ * y similares) para adjuntar su propio ref al `<button>` real sin anidarlo
+ * dentro de otro elemento interactivo.
+ *
+ * `motion.button` en vez de `<button>` nativo: da el mismo feedback táctil
+ * (`whileTap`) a cada botón del proyecto de una sola vez, sin tocar cada
+ * pantalla. Respeta `prefers-reduced-motion` solo, vía `MotionConfig
+ * reducedMotion="user"` en `src/app/providers.tsx` — no hace falta
+ * chequearlo acá. `whileHover` queda fuera a propósito en `mesa`/`lg`: son
+ * los tamaños pensados para dedo/guante, no para mouse.
+ */
 export const Boton = forwardRef<HTMLButtonElement, BotonProps>(function Boton(
-  { className, variante, tamano, ...props },
+  { className, variante, tamano, whileTap, whileHover, ...props },
   ref
 ) {
-  return <button ref={ref} className={cn(estilos({ variante, tamano }), className)} {...props} />;
+  const grande = tamano === "mesa" || tamano === "lg";
+  return (
+    <motion.button
+      ref={ref}
+      className={cn(estilos({ variante, tamano }), className)}
+      whileTap={whileTap ?? (props.disabled ? undefined : { scale: 0.96 })}
+      whileHover={whileHover ?? (grande || props.disabled ? undefined : { scale: 1.02 })}
+      transition={{ duration: 0.12 }}
+      {...props}
+    />
+  );
 });

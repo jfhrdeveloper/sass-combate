@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { TarjetaPelea } from "@/components/ui/tarjeta-pelea";
 import { Insignia } from "@/components/ui/badge";
-import { estilos } from "@/components/ui/button";
+import { estilos } from "@/components/ui/estilos-boton";
 import { Reveal } from "@/components/ui/reveal";
 import { NavLanding } from "@/components/nav-landing";
 import { FooterLanding } from "@/components/footer-landing";

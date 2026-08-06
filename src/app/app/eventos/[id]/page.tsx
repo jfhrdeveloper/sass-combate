@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Insignia } from "@/components/ui/badge";
-import { estilos } from "@/components/ui/button";
+import { estilos } from "@/components/ui/estilos-boton";
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
 import { Paginador } from "@/components/ui/paginador";
 import {

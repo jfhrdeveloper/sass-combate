@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { estilos } from "@/components/ui/button";
+import { estilos } from "@/components/ui/estilos-boton";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/utils/cn";
 

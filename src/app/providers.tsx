@@ -1,6 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MotionConfig } from "framer-motion";
 import { useState } from "react";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -13,5 +14,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
         },
       })
   );
-  return <QueryClientProvider client={cliente}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={cliente}>
+      {/* `reducedMotion="user"` respeta prefers-reduced-motion para TODAS las
+          animaciones de framer-motion del proyecto en un solo lugar, sin
+          repetir el chequeo en cada componente que la use. */}
+      <MotionConfig reducedMotion="user">{children}</MotionConfig>
+    </QueryClientProvider>
+  );
 }
