@@ -14,7 +14,7 @@ export async function registrarPago(
   const parsed = z
     .object({
       eventoId: z.string().min(1),
-      metodo: z.enum(["yape", "plin", "transferencia", "efectivo", "tarjeta"]),
+      metodo: z.enum(["yape", "plin", "transferencia", "efectivo"]),
       monto: z.coerce.number().min(0),
       referencia: z.string().optional(),
     })

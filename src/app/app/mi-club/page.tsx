@@ -13,7 +13,7 @@ export default async function PaginaMiClub({
   searchParams: Promise<{ page?: string }>;
 }) {
   const { page } = await searchParams;
-  const { academia, sesion } = await exigirAcademia();
+  const { academia } = await exigirAcademia();
   const eventos = await listarEventos(academia.id);
   const activo = eventos.find((e) => e.estado !== "finalizado") ?? eventos[0];
   const mios = activo ? await obtenerInscripcionesClub(activo.id) : [];
@@ -78,11 +78,7 @@ export default async function PaginaMiClub({
 
       {activo && <CargarLista eventoId={activo.id} />}
       {activo && pendientesDePago.length > 0 && (
-        <SubirComprobante
-          eventoId={activo.id}
-          monto={pendientesDePago.length * precio}
-          email={sesion.email}
-        />
+        <SubirComprobante eventoId={activo.id} monto={pendientesDePago.length * precio} />
       )}
     </main>
   );

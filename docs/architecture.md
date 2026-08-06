@@ -50,8 +50,8 @@
   - `GET /api/eventos/[id]/credenciales` — credenciales con QR
   - `GET /api/eventos/[id]/acta` — acta oficial
   - `POST /api/sincronizar` — recibe la cola offline, con `Idempotency-Key`; el caso `resultado` dispara `recalcular_horarios` y luego `avisarPeleasCercanas`
-  - `POST /api/pagos/culqi` — cobra la inscripción de un peleador con tarjeta y aprueba el pago si Culqi confirma el cargo
-  - `POST /api/pagos/plan` — cobra un plan de sass-combate (no una inscripción) con tarjeta y activa `organizacion.plan`/`plan_vence_en` hasta el fin del período pagado
+  - `POST /api/pagos/plan` — cobra el plan Academia de sass-combate con tarjeta y activa `organizacion.plan`/`plan_vence_en` hasta el fin del período pagado
+  - `POST /api/pagos/evento` — cobra el desbloqueo de un evento puntual con tarjeta y activa `evento.plan_vence_en`
   - `POST /api/notificaciones/suscribir` — guarda la suscripción push que se generó en `/p/[token]`
 
 ## 4. Autenticación y autorización
@@ -124,7 +124,7 @@ tests/                       pruebas de emparejador, horarios, lista-club, nivel
 |---|---|---|
 | Supabase (Postgres, Auth, Storage) | Base de datos, login, bucket `comprobantes` para pagos | `src/lib/supabase/*`, todas las rutas con sesión |
 | Google OAuth (vía Supabase Auth) | Login alternativo al correo | `/entrar`, `/auth/callback` |
-| Culqi | Pago con tarjeta (checkout tokeniza en el navegador, el cargo se crea en el servidor). Dos usos independientes: inscripción de un peleador (`pago`/`pago_inscripcion`) y plan de sass-combate (`organizacion.plan`) | `src/app/app/mi-club/pago-tarjeta.tsx` + `/api/pagos/culqi` (inscripción); `src/app/app/plan/selector-plan.tsx` + `/api/pagos/plan` (plan); ambos sobre `src/lib/pagos/culqi.ts` |
+| Culqi | Pago con tarjeta (checkout tokeniza en el navegador, el cargo se crea en el servidor). **Uso único y deliberado: contratar sass-combate** (plan Academia u desbloqueo de evento puntual), nunca la inscripción de un peleador — ese cobro lo controla cada academia a su manera (efectivo, Yape, transferencia, con sus propios descuentos), revisado manualmente vía comprobante (`actions/pagos.ts::registrarPago`) | `src/app/app/plan/selector-plan.tsx` + `/api/pagos/plan` (plan Academia); `src/app/app/eventos/[id]/desbloquear.tsx` + `/api/pagos/evento` (evento puntual); ambos sobre `src/services/pagos/culqi.ts` |
 | Resend | Email al peleador cuando su pelea se acerca | `src/lib/notificaciones/proveedores/email.ts` |
 | Twilio | SMS y WhatsApp al peleador cuando su pelea se acerca | `src/lib/notificaciones/proveedores/twilio.ts` |
 | Web Push (VAPID, sin proveedor externo) | Push web al peleador cuando su pelea se acerca | `src/lib/notificaciones/proveedores/push.ts`, opt-in en `/p/[token]`, entrega en `public/sw.js` |
@@ -139,10 +139,10 @@ Las cuatro integraciones de notificación son independientes entre sí: cada una
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | `middleware.ts`, `lib/datos.ts`, `lib/supabase/client.ts`, `lib/supabase/server.ts`, `lib/supabase/admin.ts` | Pública, segura de exponer al cliente. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ídem | Pública; protegida por RLS, no da acceso irrestricto. |
-| `SUPABASE_SERVICE_ROLE_KEY` | `lib/supabase/admin.ts` (`crearClienteServicio`), usado en `/api/pagos/culqi` y `/api/notificaciones/suscribir` | **Nunca** debe importarse desde código `"use client"` ni exponerse en una respuesta HTTP. Se usa solo cuando el servidor ya verificó algo por su cuenta (un cargo de Culqi confirmado, un token de inscripción válido) y necesita saltar una política de RLS pensada para personas, no para el sistema. |
+| `SUPABASE_SERVICE_ROLE_KEY` | `lib/supabase/admin.ts` (`crearClienteServicio`), usado en `/api/notificaciones/suscribir` y `services/publico.ts` | **Nunca** debe importarse desde código `"use client"` ni exponerse en una respuesta HTTP. Se usa solo cuando el servidor ya verificó algo por su cuenta (un token de inscripción/notificación válido) y necesita saltar una política de RLS pensada para personas, no para el sistema. |
 | `NEXT_PUBLIC_DOMINIO_RAIZ` | `middleware.ts`, `app/nueva-academia/page.tsx` | Dominio raíz para resolver subdominios de academia (`localhost:3000` en dev). |
-| `CULQI_SECRET_KEY` | `lib/pagos/culqi.ts` (servidor) | Nunca al cliente. |
-| `NEXT_PUBLIC_CULQI_PUBLIC_KEY` | `pago-tarjeta.tsx` (Checkout.js) | Pública por diseño de Culqi. |
+| `CULQI_SECRET_KEY` | `services/pagos/culqi.ts` (servidor) | Nunca al cliente. |
+| `NEXT_PUBLIC_CULQI_PUBLIC_KEY` | `plan/selector-plan.tsx`, `eventos/[id]/desbloquear.tsx` (Checkout.js) | Pública por diseño de Culqi. |
 | `RESEND_API_KEY`, `RESEND_FROM` | `lib/notificaciones/proveedores/email.ts` | Sin `RESEND_API_KEY`, el canal email queda inactivo. |
 | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WHATSAPP_FROM` | `lib/notificaciones/proveedores/twilio.ts` | SMS y WhatsApp se activan por separado según qué `_FROM` esté presente. |
 | `VAPID_PRIVATE_KEY` | `lib/notificaciones/proveedores/push.ts` (servidor) | Nunca al cliente; generar el par con `npx web-push generate-vapid-keys`. |
@@ -200,7 +200,8 @@ Las cuatro integraciones de notificación son independientes entre sí: cada una
 - **El registro de atletas es compartido entre academias a propósito** (tabla `atleta`, identificada por documento) para evitar que un peleador con historial se inscriba como debutante en otra academia. El detalle de cada evento sigue siendo privado por organización; solo el resumen (`v_resumen_atleta`) es compartido.
 - **El nivel del atleta** se calcula igual en `src/lib/nivel.ts` y en la función SQL `nivel_por_peleas` — deben mantenerse sincronizados si cambian los cortes WAKO.
 - **No importar `service_role` ni el cliente de servidor en código `"use client"`.**
-- **`service_role` (`crearClienteServicio()`) solo se usa cuando el servidor ya verificó algo por su cuenta** (un cargo de Culqi confirmado, un token de inscripción resuelto) y necesita aprobar en nombre del sistema, saltando una política de RLS pensada para que apruebe una persona (dueño/admin). Nunca se usa para responder a una lectura/escritura normal a pedido del usuario — eso sigue yendo por `crearClienteServidor()`, respetando RLS.
+- **`service_role` (`crearClienteServicio()`) solo se usa cuando el servidor ya verificó algo por su cuenta** (un token de inscripción/notificación resuelto) y necesita aprobar en nombre del sistema, saltando una política de RLS pensada para que apruebe una persona (dueño/admin). Nunca se usa para responder a una lectura/escritura normal a pedido del usuario — eso sigue yendo por `crearClienteServidor()`, respetando RLS.
+- **El cobro de la inscripción de un peleador nunca pasa por una pasarela.** Cada academia lo cobra a su manera (efectivo, Yape, transferencia, con descuentos propios) y lo registra como comprobante manual (`actions/pagos.ts::registrarPago`), revisado por el organizador. Culqi es exclusivo para que la academia contrate sass-combate (plan Academia o evento puntual) — mezclar ambos casos fue un error de una sesión anterior, corregido explícitamente por el usuario.
 - **Toda operación offline lleva `Idempotency-Key`** y el servidor hace upsert por `pelea_id`; nunca asumir que una operación llega una sola vez.
 - **Los avisos al peleador (`notificacion_enviada`) son idempotentes por diseño**: un mismo aviso no se reenvía dos veces así se reintente el recálculo de horarios; un canal sin configurar (falta su variable de entorno) queda inactivo sin afectar a los demás.
 - **Un plan de sass-combate es un cobro único por período (`organizacion.plan_vence_en`), no una suscripción recurrente.** No hay tokens de tarjeta guardados ni webhooks de renovación — al vencer, la academia sigue existiendo pero vuelve a los límites de `free`. Si se implementa cobro recurrente real más adelante, es trabajo aparte (ver `docs/pending-task.md`), no algo que este campo ya resuelve.

@@ -5,29 +5,26 @@ import { registrarPago, type EstadoFormulario } from "@/actions/pagos";
 import { Aviso, BotonEnvio } from "@/components/ui/formulario";
 import { Campo } from "@/components/ui/input";
 import { prepararImagen, ImagenInvalidaError } from "@/utils/imagen";
-import { PagoTarjeta } from "./pago-tarjeta";
 
 const METODOS = [
   ["yape", "Yape"],
   ["plin", "Plin"],
   ["transferencia", "Transferencia"],
   ["efectivo", "Efectivo el día del evento"],
-  ["tarjeta", "Tarjeta"],
 ] as const;
 
 /**
- * En Perú la mayoría paga por Yape con una captura, así que el comprobante
- * manual es el camino principal y no una excepción. La tarjeta es la única
- * vía que no pasa por revisión manual: la pasarela aprueba al instante.
+ * El cobro al competidor lo controla cada academia (incluye descuentos a su
+ * criterio), no una pasarela: por eso el comprobante manual es la única vía,
+ * revisada por el organizador. El pago con tarjeta (Culqi) queda reservado
+ * al plan de sass-combate — ver `plan/selector-plan.tsx`.
  */
 export function SubirComprobante({
   eventoId,
   monto,
-  email,
 }: {
   eventoId: string;
   monto: number;
-  email: string;
 }) {
   const [estado, accion] = useActionState<EstadoFormulario, FormData>(registrarPago, {});
   const [metodo, setMetodo] = useState<string>("yape");
@@ -83,52 +80,48 @@ export function SubirComprobante({
           </select>
         </label>
 
-        {metodo === "tarjeta" ? (
-          <PagoTarjeta eventoId={eventoId} monto={monto} email={email} />
-        ) : (
-          <form action={accion} className="grid gap-3">
-            <input type="hidden" name="eventoId" value={eventoId} />
-            <input type="hidden" name="monto" value={monto} />
-            <input type="hidden" name="metodo" value={metodo} />
+        <form action={accion} className="grid gap-3">
+          <input type="hidden" name="eventoId" value={eventoId} />
+          <input type="hidden" name="monto" value={monto} />
+          <input type="hidden" name="metodo" value={metodo} />
 
-            {/* `disabled` en el fieldset bloquea todos los campos (incluido el
-                botón de envío) mientras se comprime la imagen, sin pisar el
-                `disabled={pending}` que BotonEnvio ya maneja solo. */}
-            <fieldset disabled={procesandoImagen} className="grid gap-3">
-              {metodo !== "efectivo" && (
-                <>
-                  <label className="grid gap-1 text-sm">
-                    <span className="text-slate-600 dark:text-slate-400">Número de operación</span>
-                    <Campo name="referencia" placeholder="00123456" />
-                  </label>
-                  <label className="grid gap-1 text-sm">
-                    <span className="text-slate-600 dark:text-slate-400">Captura del pago</span>
-                    <input
-                      ref={inputArchivoRef}
-                      type="file"
-                      name="comprobante"
-                      accept="image/*"
-                      onChange={alCambiarArchivo}
-                      className="rounded-lg border border-borde bg-panel p-2 text-sm"
-                    />
-                    {procesandoImagen && (
-                      <span className="text-xs text-slate-400 dark:text-slate-500">Comprimiendo imagen…</span>
-                    )}
-                    {errorImagen && <span className="text-xs text-error">{errorImagen}</span>}
-                  </label>
-                </>
-              )}
+          {/* `disabled` en el fieldset bloquea todos los campos (incluido el
+              botón de envío) mientras se comprime la imagen, sin pisar el
+              `disabled={pending}` que BotonEnvio ya maneja solo. */}
+          <fieldset disabled={procesandoImagen} className="grid gap-3">
+            {metodo !== "efectivo" && (
+              <>
+                <label className="grid gap-1 text-sm">
+                  <span className="text-slate-600 dark:text-slate-400">Número de operación</span>
+                  <Campo name="referencia" placeholder="00123456" />
+                </label>
+                <label className="grid gap-1 text-sm">
+                  <span className="text-slate-600 dark:text-slate-400">Captura del pago</span>
+                  <input
+                    ref={inputArchivoRef}
+                    type="file"
+                    name="comprobante"
+                    accept="image/*"
+                    onChange={alCambiarArchivo}
+                    className="rounded-lg border border-borde bg-panel p-2 text-sm"
+                  />
+                  {procesandoImagen && (
+                    <span className="text-xs text-slate-400 dark:text-slate-500">Comprimiendo imagen…</span>
+                  )}
+                  {errorImagen && <span className="text-xs text-error">{errorImagen}</span>}
+                </label>
+              </>
+            )}
 
-              <Aviso error={estado.error} ok={estado.ok} />
-              <BotonEnvio>Enviar comprobante</BotonEnvio>
-            </fieldset>
+            <Aviso error={estado.error} ok={estado.ok} />
+            <BotonEnvio>Enviar comprobante</BotonEnvio>
+          </fieldset>
 
-            <p className="text-xs text-slate-400 dark:text-slate-500">
-              El organizador revisa el comprobante y aprueba las inscripciones.
-              Vas a ver el cambio aquí mismo.
-            </p>
-          </form>
-        )}
+          <p className="text-xs text-slate-400 dark:text-slate-500">
+            El organizador revisa el comprobante y aprueba las inscripciones.
+            Vas a ver el cambio aquí mismo.
+          </p>
+        </form>
       </div>
     </section>
   );
