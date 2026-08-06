@@ -5,7 +5,7 @@ import { exigirAcademia } from "@/services/auth";
 import { listarEventos, obtenerInscripcionesClub, obtenerPrecioInscripcion } from "@/services/consultas";
 import { CargarLista } from "./cargar";
 import { SubirComprobante } from "./comprobante";
-import { paginar } from "@/lib/paginacion";
+import { paginar, tamanoPaginaActual } from "@/lib/paginacion";
 import { kg } from "@/utils/format";
 
 export default async function PaginaMiClub({
@@ -20,7 +20,8 @@ export default async function PaginaMiClub({
   const mios = activo ? await obtenerInscripcionesClub(activo.id) : [];
   const precio = activo ? await obtenerPrecioInscripcion(activo.id) : 0;
   const pendientesDePago = mios.filter((i) => i.estado === "pendiente");
-  const { items: visibles, pagina, totalPaginas } = paginar(mios, Number(page) || 1);
+  const tamanoPagina = await tamanoPaginaActual();
+  const { items: visibles, pagina, totalPaginas } = paginar(mios, Number(page) || 1, tamanoPagina);
 
   return (
     <main className="mx-auto max-w-3xl p-6">

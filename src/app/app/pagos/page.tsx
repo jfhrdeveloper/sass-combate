@@ -3,7 +3,7 @@ import { Insignia } from "@/components/ui/badge";
 import { Paginador } from "@/components/ui/paginador";
 import { exigirAcademia } from "@/services/auth";
 import { listarPagos, montoFinal } from "@/services/pagos";
-import { paginar } from "@/lib/paginacion";
+import { paginar, tamanoPaginaActual } from "@/lib/paginacion";
 import { RevisarPago } from "./revisar";
 import { fechaLarga } from "@/utils/format";
 
@@ -15,7 +15,8 @@ export default async function PaginaPagos({
   const { page } = await searchParams;
   const { academia } = await exigirAcademia();
   const todos = await listarPagos();
-  const { items: pagos, pagina, totalPaginas } = paginar(todos, Number(page) || 1);
+  const tamanoPagina = await tamanoPaginaActual();
+  const { items: pagos, pagina, totalPaginas } = paginar(todos, Number(page) || 1, tamanoPagina);
 
   // Los totales de las tarjetas son sobre TODOS los pagos, no solo la página visible.
   const pendientes = todos.filter((p) => p.estado === "en_revision");

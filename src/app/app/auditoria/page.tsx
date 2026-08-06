@@ -1,7 +1,7 @@
 import { Tarjeta, TarjetaTitulo } from "@/components/ui/card";
 import { Paginador } from "@/components/ui/paginador";
 import { listarAuditoria, nombreCampoAuditoria, nombreUsuarioAuditoria } from "@/services/auditoria";
-import { paginar } from "@/lib/paginacion";
+import { paginar, tamanoPaginaActual } from "@/lib/paginacion";
 import { fechaHora } from "@/utils/format";
 import { cn } from "@/utils/cn";
 
@@ -38,7 +38,8 @@ export default async function PaginaAuditoria({
 }) {
   const { page } = await searchParams;
   const entradas = await listarAuditoria();
-  const { items: visibles, pagina, totalPaginas } = paginar(entradas, Number(page) || 1);
+  const tamanoPagina = await tamanoPaginaActual();
+  const { items: visibles, pagina, totalPaginas } = paginar(entradas, Number(page) || 1, tamanoPagina);
 
   return (
     <main className="mx-auto max-w-3xl p-6">

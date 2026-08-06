@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { SidebarApp } from "@/components/sidebar-app";
 import { BottomNavApp } from "@/components/bottom-nav-app";
+import { DetectorAncho } from "@/components/detector-ancho";
 import { cn } from "@/utils/cn";
 import type { Rol } from "@/config/roles";
 
@@ -51,6 +52,7 @@ export function AppShell({
 
   return (
     <div className="min-h-screen">
+      <DetectorAncho />
       <SidebarApp
         colapsado={colapsado}
         onToggle={alternar}

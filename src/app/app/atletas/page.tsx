@@ -3,7 +3,7 @@ import { Campo } from "@/components/ui/input";
 import { Paginador } from "@/components/ui/paginador";
 import { buscarAtletas } from "@/services/atletas";
 import { ETIQUETA_NIVEL, nivelPorPeleas } from "@/lib/nivel";
-import { paginar } from "@/lib/paginacion";
+import { paginar, tamanoPaginaActual } from "@/lib/paginacion";
 
 export default async function PaginaAtletas({
   searchParams,
@@ -12,7 +12,8 @@ export default async function PaginaAtletas({
 }) {
   const { q, page } = await searchParams;
   const todos = await buscarAtletas(q ?? "");
-  const { items: atletas, pagina, totalPaginas } = paginar(todos, Number(page) || 1);
+  const tamanoPagina = await tamanoPaginaActual();
+  const { items: atletas, pagina, totalPaginas } = paginar(todos, Number(page) || 1, tamanoPagina);
 
   return (
     <main className="mx-auto max-w-3xl p-6">

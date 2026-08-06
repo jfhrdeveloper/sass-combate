@@ -1,12 +1,21 @@
 import type { Metadata } from "next";
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
+import { Paginador } from "@/components/ui/paginador";
 import { academiasDePlataforma } from "@/services/auth";
+import { paginar, tamanoPaginaActual } from "@/lib/paginacion";
 import { fechaLarga } from "@/utils/format";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
-export default async function PanelPlataforma() {
+export default async function PanelPlataforma({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page } = await searchParams;
   const academias = await academiasDePlataforma();
+  const tamanoPagina = await tamanoPaginaActual();
+  const { items: visibles, pagina, totalPaginas } = paginar(academias, Number(page) || 1, tamanoPagina);
 
   const total = academias.length;
   const conEventos = academias.filter((a) => a.eventos > 0).length;
@@ -52,7 +61,7 @@ export default async function PanelPlataforma() {
             </tr>
           </thead>
           <tbody>
-            {academias.map((a) => (
+            {visibles.map((a) => (
               <tr key={a.id} className="border-t border-borde">
                 <td className="px-3 py-2">
                   <span className="font-medium">{a.nombre}</span>
@@ -74,6 +83,8 @@ export default async function PanelPlataforma() {
       {academias.length === 0 && (
         <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">Todavía no hay academias.</p>
       )}
+
+      <Paginador pagina={pagina} totalPaginas={totalPaginas} hrefPara={(p) => `/admin?page=${p}`} />
 
       <p className="mt-6 text-xs text-slate-400 dark:text-slate-500">
         Esta vista no expone peleadores ni resultados. Ver datos de una academia

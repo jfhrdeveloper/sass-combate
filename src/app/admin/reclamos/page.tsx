@@ -3,7 +3,7 @@ import { listarReclamos } from "@/services/reclamos";
 import { fechaLarga } from "@/utils/format";
 import { ResponderReclamo } from "./responder";
 import { Paginador } from "@/components/ui/paginador";
-import { paginar } from "@/lib/paginacion";
+import { paginar, tamanoPaginaActual } from "@/lib/paginacion";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
@@ -16,11 +16,12 @@ export default async function PaginaReclamos({
   const reclamos = await listarReclamos();
   const pendientes = reclamos.filter((r) => r.estado === "pendiente");
   const respondidos = reclamos.filter((r) => r.estado === "respondido");
+  const tamanoPagina = await tamanoPaginaActual();
   const {
     items: visibles,
     pagina,
     totalPaginas,
-  } = paginar([...pendientes, ...respondidos], Number(page) || 1);
+  } = paginar([...pendientes, ...respondidos], Number(page) || 1, tamanoPagina);
 
   return (
     <main className="mx-auto max-w-3xl p-6">

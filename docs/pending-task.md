@@ -11,7 +11,7 @@
 - [ ] Desplegar a Vercel (o el hosting elegido) y configurar dominio con soporte de subdominios por academia.
 
 ## Pendientes activos
-- [ ] **Auditoría grande de interfaz/backend pedida el 2026-08-06** (ver esa entrada de bitácora): el usuario pidió implementar las 7 fases de una vez. Fases 1, 2 y 3 cerradas (ver bitácora de hoy). Quedan las fases 4 a 7 (paginación 4 mobile/8 desktop, CRUD completo de categorías/equipo/atletas, backend robusto para 300 espectadores, animaciones + skeleton).
+- [ ] **Auditoría grande de interfaz/backend pedida el 2026-08-06** (ver esa entrada de bitácora): el usuario pidió implementar las 7 fases de una vez. Fases 1 a 4 cerradas (ver bitácora de hoy). Quedan las fases 5 a 7 (CRUD completo de categorías/equipo/atletas, backend robusto para 300 espectadores, animaciones + skeleton).
 - [x] Extender la inscripción desde el panel para pasar por la cola offline (hoy va directo contra el servidor; solo resultados, pesaje y asistencia usan la cola).
 - [x] Formalizar tokens de color para estados (éxito/aviso/error/info) en `tailwind.config.ts` — hoy se usan utilidades sueltas.
 - [x] Conectar `/p/[token]` y `/e/[org]/[evento]` a datos reales de Supabase — ver bitácora de hoy (`src/lib/publico.ts`).
@@ -25,6 +25,23 @@
 - [ ] **No existe ninguna UI para crear/editar áreas de un evento** (ring/tatami/jaula, con sus modalidades y hora de inicio) — hoy `AREAS_DEMO` es el único ejemplo que existe; en producción real habría que insertarlas a mano en Supabase. Descubierto el 2026-08-04 al ampliar el catálogo de modalidades (ver esa entrada); no se construyó, es alcance separado y bastante grande (una pantalla de gestión completa).
 - [ ] `mesa/[eventoId]/page.tsx` sigue usando `CATEGORIAS_DEMO`/`PELEAS_DEMO`/`AREAS_DEMO` fijos (mismo gap de siempre, ver el pendiente de arriba) — el chip de categoría de peso que se agregó el 2026-08-04 hereda esa misma limitación: en real necesitaría `listarCategorias` server-side igual que `eventos/[id]/page.tsx`.
 - [x] Descuento al aprobar un pago de inscripción — ver bitácora de hoy (`pago.descuento_tipo`/`descuento_valor`, `RevisarPago`).
+
+### 2026-08-06 (6) — Auditoría grande: Fase 4 (paginación 4 mobile / 8 desktop)
+- **Qué cambió:**
+  - **Mecanismo elegido (decisión 1 del reporte, opción A):** `src/components/detector-ancho.tsx`, un Client Component sin salida visual, montado una sola vez en `AppShell` (rutas `/app/**`) y en `admin/layout.tsx` (rutas `/admin/**`). Detecta con `matchMedia` el mismo breakpoint `sm` de Tailwind (640px) y guarda una cookie `ancho_pantalla` (`movil`/`escritorio`); si cambió (o es la primera visita), refresca para que el Server Component vuelva a paginar con el tamaño correcto. El resto de la mecánica sigue exactamente igual que antes: `<Paginador>` es Server Component puro, navega por `?page=`, sin JS de cliente para la navegación en sí.
+  - `src/lib/paginacion.ts` ganó `TAMANO_PAGINA_MOVIL` (4), `BREAKPOINT_MOVIL` (640, para no repetir el número suelto en `detector-ancho.tsx`) y `tamanoPaginaActual()` (lee la cookie con `next/headers`, importado dinámicamente adentro de la función para no acoplar el resto del archivo, que sigue siendo puro y testeable, a la runtime de Next.js). Sin cookie (primera visita) cae a 8, igual que el comportamiento de antes de esta sesión.
+  - **Las 6 páginas que ya paginaban** (`atletas`, `pagos`, `auditoria`, `app/page.tsx`, `mi-club`, `admin/reclamos`) pasaron a usar `tamanoPaginaActual()` en vez del tamaño fijo.
+  - **Las 3 listas sin paginar del reporte, cerradas:**
+    - `admin/page.tsx` (lista de academias): paginación server-side estándar, igual que las demás.
+    - `eventos/[id]/page.tsx` (tabla de peleas por área): cada área pagina su propia tabla de forma independiente, con su propio query param (`area-<id>`) para no pisar la página de las demás áreas visibles en la misma pantalla — verificado con `curl` que las 3 áreas del evento demo (`ring`/`tatami-1`/`jaula`) paginan cada una por su lado.
+    - `emparejar/page.tsx` (lista "sin rival"): único caso especial, porque toda la pantalla es Client Component (drag-and-drop). No hay cookie ahí: `matchMedia` directo en un efecto, mismos tamaños (4/8) pero paginación de estado de React en vez de `?page=`, con controles Anterior/Siguiente propios (mismo lenguaje visual que `<Paginador>`, sin reusar el componente porque ese es Link-based y esta pantalla no tiene URL de por medio).
+  - Documentado en `style-guide.md`: el mecanismo completo (cookie, breakpoint, excepción de `emparejar`).
+  - `npm run typecheck`, `npm run lint`, `npm test` (60 pruebas) y `npm run build` pasan. Verificado con `curl -b "ancho_pantalla=movil"` / `-b "ancho_pantalla=escritorio"` contra pagos (6 páginas en escritorio vs 11 en mobile, con los mismos datos), evento demo (cada área con su propio conteo de páginas, incluida un área que solo pagina en mobile porque tiene entre 5 y 8 filas) y sin cookie (cae a escritorio, como antes).
+- **Por qué:** pedido explícito del usuario, Fase 4 del plan de 7.
+- **Pendiente / riesgos conocidos:**
+  - No se probó la detección de `matchMedia` en un navegador real (redimensionar la ventana, rotar el celular) — solo se verificó el mecanismo del lado del servidor mandando la cookie a mano con `curl`.
+  - `/admin` tiene una sola academia en modo demo, así que su paginación nueva no se pudo ver disparándose en modo demo (sí se verificó que el código es idéntico al de las otras 6 páginas que sí muestran paginación con datos reales).
+  - Siguen las fases 5 a 7.
 
 ### 2026-08-06 (5) — Auditoría grande: Fase 3 (badges, grids, tablas, Poppins)
 - **Qué cambió:**

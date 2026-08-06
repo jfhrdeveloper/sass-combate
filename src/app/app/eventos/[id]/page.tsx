@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Insignia } from "@/components/ui/badge";
 import { estilos } from "@/components/ui/button";
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
+import { Paginador } from "@/components/ui/paginador";
 import {
   listarCategorias,
   obtenerAreas,
@@ -13,18 +14,35 @@ import {
 } from "@/services/consultas";
 import { construirAgenda, formatearRetraso } from "@/lib/horarios";
 import { categoriaDePeso } from "@/lib/categorias";
+import { paginar, tamanoPaginaActual } from "@/lib/paginacion";
 import { hora, kg } from "@/utils/format";
 import { exigirAcademia } from "@/services/auth";
 import { planEstaActivo } from "@/lib/planes";
 import { DesbloquearEvento } from "./desbloquear";
 import { CategoriasEvento } from "./categorias-evento";
 
+/** Cada área pagina su propia tabla, con su propio query param (`area-<id>`)
+ *  para no pisar la página de las demás áreas de la misma pantalla. */
+function hrefParaArea(searchParams: Record<string, string | undefined>, areaId: string) {
+  return (pagina: number) => {
+    const params = new URLSearchParams();
+    for (const [clave, valor] of Object.entries(searchParams)) {
+      if (valor && clave !== `area-${areaId}`) params.set(clave, valor);
+    }
+    params.set(`area-${areaId}`, String(pagina));
+    return `?${params.toString()}`;
+  };
+}
+
 export default async function PaginaEvento({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const { id } = await params;
+  const busqueda = await searchParams;
   const { academia, sesion } = await exigirAcademia();
   const [evento, areas, peleas, bloques, inscripciones, categorias] = await Promise.all([
     obtenerEvento(id),
@@ -38,6 +56,7 @@ export default async function PaginaEvento({
 
   const inscripcionPorId = new Map(inscripciones.map((i) => [i.id, i]));
   const agendas = construirAgenda(areas, peleas, bloques);
+  const tamanoPagina = await tamanoPaginaActual();
   const totalPeleas = peleas.length;
   const finalizadas = peleas.filter((p) => p.estado === "finalizada").length;
   const peorRetraso = agendas.length ? Math.max(...agendas.map((a) => a.retrasoSeg)) : 0;
@@ -129,7 +148,15 @@ export default async function PaginaEvento({
 
       <CategoriasEvento eventoId={id} categorias={categorias} />
 
-      {agendas.map((ag) => (
+      {agendas.map((ag) => {
+        const claveParam = `area-${ag.area.id}`;
+        const { items: filasVisibles, pagina, totalPaginas } = paginar(
+          ag.filas,
+          Number(busqueda[claveParam]) || 1,
+          tamanoPagina
+        );
+
+        return (
         <section key={ag.area.id} className="mt-8">
           <div className="flex items-baseline justify-between">
             <h2 className="text-lg font-medium">{ag.area.nombre}</h2>
@@ -151,7 +178,7 @@ export default async function PaginaEvento({
                 </tr>
               </thead>
               <tbody>
-                {ag.filas.map((f) => {
+                {filasVisibles.map((f) => {
                   if (f.tipo === "bloque") {
                     return (
                       <tr key={f.id} className="border-t border-borde bg-aviso-suave/60">
@@ -202,8 +229,15 @@ export default async function PaginaEvento({
               </tbody>
             </table>
           </div>
+
+          <Paginador
+            pagina={pagina}
+            totalPaginas={totalPaginas}
+            hrefPara={hrefParaArea(busqueda, ag.area.id)}
+          />
         </section>
-      ))}
+        );
+      })}
     </main>
   );
 }

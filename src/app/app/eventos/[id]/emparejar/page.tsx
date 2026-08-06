@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Boton } from "@/components/ui/button";
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
 import { TarjetaPelea } from "@/components/ui/tarjeta-pelea";
 import { CATEGORIAS_DEMO, INSCRIPCIONES_DEMO } from "@/lib/datos";
 import { REGLAS_POR_DEFECTO, emparejar, type Cruce } from "@/lib/emparejador";
 import { categoriaDePeso } from "@/lib/categorias";
+import { paginar, TAMANO_PAGINA, TAMANO_PAGINA_MOVIL, BREAKPOINT_MOVIL } from "@/lib/paginacion";
 import { NOMBRE_MODALIDAD, type ModalidadCodigo, type Inscripcion } from "@/types";
 import { kg } from "@/utils/format";
 
@@ -27,6 +28,19 @@ export default function PaginaEmparejar() {
   const [aceptados, setAceptados] = useState<Record<string, "si" | "no">>({});
   const [manuales, setManuales] = useState<ParManual[]>([]);
   const [arrastrando, setArrastrando] = useState<string | null>(null);
+  const [paginaSinRival, setPaginaSinRival] = useState(1);
+  const [esMovil, setEsMovil] = useState(false);
+
+  /** Sin cookie acá (a diferencia de las listas server-side, ver
+   *  `DetectorAncho`): esta pantalla es 100% cliente, así que el mismo
+   *  breakpoint se detecta directo con matchMedia. */
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${BREAKPOINT_MOVIL - 1}px)`);
+    setEsMovil(mq.matches);
+    const escuchar = (e: MediaQueryListEvent) => setEsMovil(e.matches);
+    mq.addEventListener("change", escuchar);
+    return () => mq.removeEventListener("change", escuchar);
+  }, []);
 
   const resultado = useMemo(
     () => emparejar(INSCRIPCIONES_DEMO, reglas),
@@ -38,6 +52,11 @@ export default function PaginaEmparejar() {
 
   const idsEnManual = new Set(manuales.flatMap((p) => [p.a.id, p.b.id]));
   const sinRivalRestantes = resultado.sinRival.filter((i) => !idsEnManual.has(i.id));
+  const {
+    items: sinRivalVisibles,
+    pagina: paginaSinRivalSegura,
+    totalPaginas: totalPaginasSinRival,
+  } = paginar(sinRivalRestantes, paginaSinRival, esMovil ? TAMANO_PAGINA_MOVIL : TAMANO_PAGINA);
 
   /**
    * Arrastrar un "sin rival" sobre otro los empareja a mano — el único caso
@@ -228,7 +247,7 @@ export default function PaginaEmparejar() {
             peleadores entre sí para emparejarlos a mano.
           </p>
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-            {sinRivalRestantes.map((i) => (
+            {sinRivalVisibles.map((i) => (
               <li
                 key={i.id}
                 draggable
@@ -254,6 +273,32 @@ export default function PaginaEmparejar() {
               </li>
             ))}
           </ul>
+
+          {totalPaginasSinRival > 1 && (
+            <nav aria-label="Paginación" className="mt-4 flex items-center justify-center gap-3 text-sm">
+              <Boton
+                type="button"
+                variante="contorno"
+                tamano="sm"
+                disabled={paginaSinRivalSegura <= 1}
+                onClick={() => setPaginaSinRival((p) => Math.max(1, p - 1))}
+              >
+                Anterior
+              </Boton>
+              <span className="tabular-nums text-slate-500 dark:text-slate-400">
+                Página {paginaSinRivalSegura} de {totalPaginasSinRival}
+              </span>
+              <Boton
+                type="button"
+                variante="contorno"
+                tamano="sm"
+                disabled={paginaSinRivalSegura >= totalPaginasSinRival}
+                onClick={() => setPaginaSinRival((p) => Math.min(totalPaginasSinRival, p + 1))}
+              >
+                Siguiente
+              </Boton>
+            </nav>
+          )}
         </section>
       )}
 

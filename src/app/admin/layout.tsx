@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { esStaff, sesionActual } from "@/services/auth";
 import { salir } from "@/actions/cuenta";
+import { DetectorAncho } from "@/components/detector-ancho";
 import Link from "next/link";
 
 export default async function LayoutAdmin({ children }: { children: React.ReactNode }) {
@@ -10,6 +11,7 @@ export default async function LayoutAdmin({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen">
+      <DetectorAncho />
       <header className="border-b border-borde bg-slate-900 text-white">
         <div className="mx-auto flex max-w-5xl items-center gap-4 px-6 py-3">
           <Link href="/admin" className="font-semibold">

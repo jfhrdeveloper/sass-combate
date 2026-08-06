@@ -8,7 +8,7 @@ import { listarEventos } from "@/services/consultas";
 import { listarPagos, resumenIngresos7Dias } from "@/services/pagos";
 import { fechaLarga } from "@/utils/format";
 import { cn } from "@/utils/cn";
-import { paginar } from "@/lib/paginacion";
+import { paginar, tamanoPaginaActual } from "@/lib/paginacion";
 import { GraficoIngresos } from "./grafico-ingresos";
 
 export default async function VistaGeneral({
@@ -19,7 +19,8 @@ export default async function VistaGeneral({
   const { page } = await searchParams;
   const { academia } = await exigirAcademia();
   const eventos = await listarEventos(academia.id);
-  const { items: visibles, pagina, totalPaginas } = paginar(eventos, Number(page) || 1);
+  const tamanoPagina = await tamanoPaginaActual();
+  const { items: visibles, pagina, totalPaginas } = paginar(eventos, Number(page) || 1, tamanoPagina);
 
   const proximos = eventos.filter((e) => e.estado !== "finalizado");
   const pasados = eventos.filter((e) => e.estado === "finalizado");
