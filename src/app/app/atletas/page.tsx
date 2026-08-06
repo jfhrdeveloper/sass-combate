@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Campo } from "@/components/ui/input";
 import { Paginador } from "@/components/ui/paginador";
+import { estilos } from "@/components/ui/estilos-boton";
 import { buscarAtletas } from "@/services/atletas";
 import { ETIQUETA_NIVEL, nivelPorPeleas } from "@/lib/nivel";
 import { paginar, tamanoPaginaActual } from "@/lib/paginacion";
@@ -17,11 +18,18 @@ export default async function PaginaAtletas({
 
   return (
     <main className="mx-auto max-w-3xl p-6">
-      <h1 className="text-2xl font-semibold">Atletas</h1>
-      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-        Registro compartido entre academias. Busca por documento o nombre antes
-        de inscribir a alguien: si ya compitió, su nivel sale de aquí.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Atletas</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+            Los peleadores de tu academia. Cada academia lleva su propio registro,
+            sin cruzarse con el de otras.
+          </p>
+        </div>
+        <Link href="/app/atletas/nuevo" className={estilos({ tamano: "sm" })}>
+          Agregar peleador
+        </Link>
+      </div>
 
       <form className="mt-6">
         <Campo name="q" defaultValue={q ?? ""} placeholder="DNI o nombre…" />
@@ -66,7 +74,7 @@ export default async function PaginaAtletas({
           <p className="font-medium">Sin resultados</p>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             {q
-              ? "Nadie con ese documento o nombre. Se registrará como debutante."
+              ? "Nadie con ese documento o nombre en tu academia todavía."
               : "Escribe un documento o nombre para buscar."}
           </p>
         </div>
@@ -79,8 +87,8 @@ export default async function PaginaAtletas({
       />
 
       <p className="mt-8 text-xs text-slate-400 dark:text-slate-500">
-        Ves el resumen de peleas de cualquier atleta, pero el detalle de cada
-        evento solo lo ve la academia que lo registró.
+        Este registro es solo de tu academia. Otras academias que usan
+        sass-combate llevan el suyo por separado.
       </p>
     </main>
   );

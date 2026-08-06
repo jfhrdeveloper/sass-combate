@@ -1,9 +1,18 @@
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { HAY_SUPABASE } from "@/lib/datos";
 
+/**
+ * `id` es el id de `peleador` (la fila propia de tu academia), no del
+ * registro compartido `atleta` — cada academia tiene su propia fila para la
+ * misma persona, con su propio récord, editable/eliminable sin afectar a
+ * otras academias (ver docs/pending-task.md, sesión del 2026-08-06).
+ * `atleta_id` viaja aparte, de solo uso interno (`historialVisible`,
+ * `peleasEnOtrasAcademias`) — nunca se muestra en la UI.
+ */
 export interface ResumenAtleta {
   id: string;
-  documento: string;
+  atleta_id: string | null;
+  documento: string | null;
   nombres: string;
   apellidos: string;
   nacimiento: string | null;
@@ -33,6 +42,7 @@ export interface PeleaHistorial {
 const DEMO: ResumenAtleta[] = [
   {
     id: "a1",
+    atleta_id: "atl-1",
     documento: "70123456",
     nombres: "Jamil",
     apellidos: "Zarate",
@@ -47,6 +57,7 @@ const DEMO: ResumenAtleta[] = [
   },
   {
     id: "a2",
+    atleta_id: "atl-2",
     documento: "70987654",
     nombres: "Erika",
     apellidos: "Saenz",
@@ -61,6 +72,7 @@ const DEMO: ResumenAtleta[] = [
   },
   {
     id: "a3",
+    atleta_id: "atl-3",
     documento: "71122334",
     nombres: "Santiago",
     apellidos: "Vargas",
@@ -75,6 +87,7 @@ const DEMO: ResumenAtleta[] = [
   },
   {
     id: "a4",
+    atleta_id: "atl-4",
     documento: "72233445",
     nombres: "Alejandra",
     apellidos: "Nuñez",
@@ -89,6 +102,7 @@ const DEMO: ResumenAtleta[] = [
   },
   {
     id: "a5",
+    atleta_id: "atl-5",
     documento: "73344556",
     nombres: "Franchesco",
     apellidos: "Gomez",
@@ -103,6 +117,7 @@ const DEMO: ResumenAtleta[] = [
   },
   {
     id: "a6",
+    atleta_id: "atl-6",
     documento: "74455667",
     nombres: "Alessandro Gianfranco",
     apellidos: "Luyo Bustamante",
@@ -117,6 +132,7 @@ const DEMO: ResumenAtleta[] = [
   },
   {
     id: "a7",
+    atleta_id: "atl-7",
     documento: "75566778",
     nombres: "Diego",
     apellidos: "Espinoza",
@@ -131,6 +147,7 @@ const DEMO: ResumenAtleta[] = [
   },
   {
     id: "a8",
+    atleta_id: "atl-8",
     documento: "76677889",
     nombres: "Ivana",
     apellidos: "Santamaria",
@@ -350,13 +367,14 @@ const HISTORIAL_DEMO: Record<string, PeleaHistorial[]> = {
   ],
 };
 
+/** Busca dentro de TU academia (v_mi_peleador ya está scopeado por RLS, ver migración 18). */
 export async function buscarAtletas(q: string): Promise<ResumenAtleta[]> {
   if (!HAY_SUPABASE) {
     if (!q) return DEMO;
     const t = q.toLowerCase();
     return DEMO.filter(
       (a) =>
-        a.documento.includes(t) ||
+        (a.documento ?? "").includes(t) ||
         `${a.nombres} ${a.apellidos}`.toLowerCase().includes(t)
     );
   }
@@ -365,7 +383,7 @@ export async function buscarAtletas(q: string): Promise<ResumenAtleta[]> {
 
   const supabase = await crearClienteServidor();
   const { data } = await supabase
-    .from("v_resumen_atleta")
+    .from("v_mi_peleador")
     .select("*")
     .or(`documento.ilike.%${q}%,nombres.ilike.%${q}%,apellidos.ilike.%${q}%`)
     .limit(25);
@@ -378,12 +396,46 @@ export async function obtenerAtleta(id: string): Promise<ResumenAtleta | null> {
 
   const supabase = await crearClienteServidor();
   const { data } = await supabase
-    .from("v_resumen_atleta")
+    .from("v_mi_peleador")
     .select("*")
     .eq("id", id)
     .maybeSingle();
 
   return (data as ResumenAtleta | null) ?? null;
+}
+
+/** Paso "encontrado/no encontrado" al agregar: busca por documento EXACTO
+ *  dentro de tu propia academia, antes de mostrar el formulario. */
+export async function buscarPeleadorPorDocumento(documento: string): Promise<ResumenAtleta | null> {
+  if (!HAY_SUPABASE) return DEMO.find((a) => a.documento === documento) ?? null;
+
+  const supabase = await crearClienteServidor();
+  const { data } = await supabase
+    .from("v_mi_peleador")
+    .select("*")
+    .eq("documento", documento)
+    .maybeSingle();
+
+  return (data as ResumenAtleta | null) ?? null;
+}
+
+/** Cuenta (sin detalle) cuántas peleas tiene ese documento en OTRAS
+ *  academias que también usan sass-combate — solo bajo demanda, nunca
+ *  automático (ver `peleas_otras_academias` en la migración 18). */
+export async function peleasEnOtrasAcademias(documento: string): Promise<number> {
+  if (!HAY_SUPABASE) return documento === "71122334" ? 3 : 0;
+
+  const supabase = await crearClienteServidor();
+  const { data: academias } = await supabase.from("v_mis_academias").select("id").limit(1);
+  const organizacionId = academias?.[0]?.id;
+  if (!organizacionId) return 0;
+
+  const { data } = await supabase.rpc("peleas_otras_academias", {
+    p_documento: documento,
+    p_organizacion_id: organizacionId,
+  });
+
+  return typeof data === "number" ? data : 0;
 }
 
 /** Solo devuelve las peleas que registró tu propia academia; RLS filtra el resto. */

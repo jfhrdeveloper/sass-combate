@@ -5,7 +5,9 @@ import { historialVisible, obtenerAtleta } from "@/services/atletas";
 import { ETIQUETA_NIVEL, nivelPorPeleas } from "@/lib/nivel";
 import { fechaLarga, kg } from "@/utils/format";
 import { AgregarPeleaExterna } from "./agregar";
-import { EditarAtleta } from "./editar";
+import { EditarPeleador } from "./editar";
+import { EliminarPeleador } from "./eliminar";
+import { BuscarOtrasAcademias } from "../buscar-otras-academias";
 
 export default async function PaginaAtleta({
   params,
@@ -16,9 +18,9 @@ export default async function PaginaAtleta({
   const atleta = await obtenerAtleta(id);
   if (!atleta) notFound();
 
-  const historial = await historialVisible(id);
+  const atletaId = atleta.atleta_id ?? "";
+  const historial = await historialVisible(atletaId);
   const nivel = nivelPorPeleas(atleta.peleas);
-  const ocultas = atleta.peleas - historial.filter((h) => h.resultado !== "exhibicion").length;
 
   return (
     <main className="mx-auto max-w-3xl p-6">
@@ -28,11 +30,14 @@ export default async function PaginaAtleta({
             {atleta.nombres} {atleta.apellidos}
           </h1>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-            DNI {atleta.documento}
+            DNI {atleta.documento ?? "sin documento"}
             {atleta.nacimiento ? ` · nacido el ${fechaLarga(atleta.nacimiento)}` : ""}
           </p>
         </div>
-        <EditarAtleta atleta={atleta} />
+        <div className="flex shrink-0 items-center gap-2">
+          <EditarPeleador atleta={atleta} />
+          <EliminarPeleador peleadorId={atleta.id} atletaId={atletaId} nombre={`${atleta.nombres} ${atleta.apellidos}`} />
+        </div>
       </div>
 
       <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -58,6 +63,10 @@ export default async function PaginaAtleta({
           </TarjetaDato>
         </Tarjeta>
       </section>
+
+      <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
+        Récord y nivel calculados solo con lo que registró tu academia.
+      </p>
 
       <h2 className="mt-8 text-lg font-medium">Historial</h2>
 
@@ -89,15 +98,22 @@ export default async function PaginaAtleta({
         ))}
       </ul>
 
-      {ocultas > 0 && (
-        <p className="mt-3 rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-600 dark:bg-white/10 dark:text-slate-400">
-          Tiene {ocultas} pelea{ocultas === 1 ? "" : "s"} más registrada
-          {ocultas === 1 ? "" : "s"} por otras academias. Cuentan para su nivel,
-          pero el detalle no es visible desde aquí.
+      {historial.length === 0 && (
+        <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+          Todavía no tiene peleas registradas en tu academia.
         </p>
       )}
 
-      <AgregarPeleaExterna atletaId={id} />
+      {atleta.documento && (
+        <div className="mt-6 rounded-xl border border-dashed border-borde p-4">
+          <p className="mb-2 text-sm text-slate-600 dark:text-slate-400">
+            ¿Sospechás que compitió en otra academia? Confirmalo sin salir de acá.
+          </p>
+          <BuscarOtrasAcademias documento={atleta.documento} />
+        </div>
+      )}
+
+      <AgregarPeleaExterna atletaId={atletaId} />
     </main>
   );
 }

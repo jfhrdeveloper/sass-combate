@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { editarAtleta, type EstadoFormulario } from "@/actions/atletas";
+import { editarPeleador, type EstadoFormulario } from "@/actions/atletas";
 import { Aviso, BotonEnvio } from "@/components/ui/formulario";
 import { Campo } from "@/components/ui/input";
 import { Boton } from "@/components/ui/button";
@@ -17,9 +17,9 @@ import {
 } from "@/components/ui/dialog";
 import type { ResumenAtleta } from "@/services/atletas";
 
-export function EditarAtleta({ atleta }: { atleta: ResumenAtleta }) {
+export function EditarPeleador({ atleta }: { atleta: ResumenAtleta }) {
   const [abierto, setAbierto] = useState(false);
-  const [estado, accion] = useActionState<EstadoFormulario, FormData>(editarAtleta, {});
+  const [estado, accion] = useActionState<EstadoFormulario, FormData>(editarPeleador, {});
 
   return (
     <Dialog open={abierto} onOpenChange={setAbierto}>
@@ -32,8 +32,7 @@ export function EditarAtleta({ atleta }: { atleta: ResumenAtleta }) {
         <DialogHeader>
           <DialogTitle>Editar datos de {atleta.nombres}</DialogTitle>
           <DialogDescription>
-            Este registro es compartido entre academias, así que el documento no se puede cambiar
-            acá: es lo que cruza el historial de un atleta entre academias distintas.
+            Esto solo cambia el registro de tu academia. El documento no se puede editar acá.
           </DialogDescription>
         </DialogHeader>
         <form
@@ -43,7 +42,7 @@ export function EditarAtleta({ atleta }: { atleta: ResumenAtleta }) {
           }}
           className="grid gap-3"
         >
-          <input type="hidden" name="atletaId" value={atleta.id} />
+          <input type="hidden" name="peleadorId" value={atleta.id} />
           <div className="grid grid-cols-2 gap-3">
             <label className="grid gap-1 text-sm">
               <span className="text-slate-600 dark:text-slate-400">Nombres</span>

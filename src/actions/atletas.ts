@@ -1,9 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { HAY_SUPABASE } from "@/lib/datos";
+import { peleasEnOtrasAcademias } from "@/services/atletas";
 import type { EstadoFormulario } from "./estado";
 export type { EstadoFormulario } from "./estado";
 
@@ -46,40 +48,92 @@ export async function registrarPeleaExterna(
 
   if (error) return { error: "No se pudo guardar la pelea" };
 
-  revalidatePath(`/app/atletas/${parsed.data.atletaId}`);
+  revalidatePath(`/app/atletas`);
   return { ok: "Pelea agregada al historial" };
 }
 
+const datosPersonaSchema = z.object({
+  nombres: z.string().min(1, "Escribe el nombre"),
+  apellidos: z.string().min(1, "Escribe el apellido"),
+  nacimiento: z.string().optional(),
+  sexo: z.enum(["M", "F", "sin_dato"]).optional(),
+});
+
 /**
- * `atleta` es un registro compartido entre academias a propósito (ver el
- * comentario en `supabase/migrations/20260101000004_historial_y_plataforma.sql`):
- * corregir un nombre o una fecha de nacimiento mal cargados es seguro y ya
- * lo permite la política `atleta_actualizacion` (cualquier miembro de
- * cualquier academia puede actualizar, existía desde el primer commit). El
- * documento (`documento`) no se puede editar acá porque es la clave que
- * cruza el registro entre academias — cambiarlo rompería ese cruce.
- *
- * A propósito NO existe una acción de eliminar atleta: borrar esta fila
- * arrastra (`on delete cascade`) el historial de pelea de TODAS las
- * academias que compartan a este atleta, no solo la que hace el borrado.
- * Ninguna política de RLS permite el delete hoy (a diferencia de update,
- * que sí tiene una desde el esquema base) — es una omisión deliberada del
- * schema, no un descuido; habilitarla necesita una decisión de producto
- * aparte (¿soft delete?, ¿solo puede borrar quien lo creó?), no algo que
- * este botón deba resolver de paso. Ver docs/pending-task.md.
+ * Cada academia tiene su propia fila en `peleador` para la misma persona
+ * (documento/nombres/apellidos/nacimiento/sexo son de ESA fila, no del
+ * registro compartido `atleta`) — decisión explícita del usuario, sesión
+ * del 2026-08-06: las academias no comparten esta información entre sí.
+ * `atleta` sigue existiendo por dentro (upsert por documento) solo para que
+ * el trigger `registrar_en_historial()` sepa a quién anotarle un resultado
+ * y para que funcione `peleasEnOtrasAcademias` — nunca se expone como
+ * concepto ni se usa para autocompletar datos entre academias.
  */
-export async function editarAtleta(
+export async function crearPeleador(
   _prev: EstadoFormulario,
   datos: FormData
 ): Promise<EstadoFormulario> {
-  const parsed = z
-    .object({
-      atletaId: z.string().min(1),
-      nombres: z.string().min(1, "Escribe el nombre"),
-      apellidos: z.string().min(1, "Escribe el apellido"),
-      nacimiento: z.string().optional(),
-      sexo: z.enum(["M", "F", "sin_dato"]).optional(),
-    })
+  const parsed = datosPersonaSchema
+    .extend({ documento: z.string().min(1, "Escribe el documento") })
+    .safeParse(Object.fromEntries(datos));
+
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  if (!HAY_SUPABASE) return { ok: "Modo demo: no se guarda." };
+
+  const supabase = await crearClienteServidor();
+  const { data: academias } = await supabase.from("v_mis_academias").select("id").limit(1);
+  const organizacionId = academias?.[0]?.id;
+  if (!organizacionId) return { error: "No tienes una academia" };
+
+  const { nombres, apellidos, documento } = parsed.data;
+  const nacimiento = parsed.data.nacimiento || null;
+  const sexo = parsed.data.sexo === "sin_dato" ? null : parsed.data.sexo ?? null;
+
+  // Enlace interno con el registro compartido (ver comentario de arriba):
+  // no se le pide nada nuevo al usuario, solo hace posible el historial y
+  // la búsqueda cruzada opcional.
+  const { data: atleta } = await supabase
+    .from("atleta")
+    .upsert({ documento, nombres, apellidos, nacimiento, sexo }, { onConflict: "documento" })
+    .select("id")
+    .single();
+
+  const { data: peleador, error } = await supabase
+    .from("peleador")
+    .upsert(
+      {
+        organizacion_id: organizacionId,
+        atleta_id: atleta?.id ?? null,
+        documento,
+        nombres,
+        apellidos,
+        nacimiento,
+        sexo,
+      },
+      { onConflict: "organizacion_id,documento" }
+    )
+    .select("id")
+    .single();
+
+  if (error || !peleador) return { error: "No se pudo registrar" };
+
+  revalidatePath("/app/atletas");
+  redirect(`/app/atletas/${peleador.id}`);
+}
+
+/**
+ * Edita SOLO la fila de tu academia (`peleador`), nunca el registro
+ * compartido `atleta` — así lo que corrijas no se filtra a otra academia.
+ * El documento no se puede tocar acá: es la clave que enlaza con `atleta`
+ * por dentro; cambiarlo después de creado rompería ese enlace.
+ */
+export async function editarPeleador(
+  _prev: EstadoFormulario,
+  datos: FormData
+): Promise<EstadoFormulario> {
+  const parsed = datosPersonaSchema
+    .extend({ peleadorId: z.string().min(1) })
     .safeParse(Object.fromEntries(datos));
 
   if (!parsed.success) return { error: parsed.error.issues[0].message };
@@ -88,19 +142,73 @@ export async function editarAtleta(
 
   const supabase = await crearClienteServidor();
   const { error } = await supabase
-    .from("atleta")
+    .from("peleador")
     .update({
       nombres: parsed.data.nombres,
       apellidos: parsed.data.apellidos,
       nacimiento: parsed.data.nacimiento || null,
       sexo: parsed.data.sexo === "sin_dato" ? null : parsed.data.sexo ?? null,
-      actualizado_en: new Date().toISOString(),
     })
-    .eq("id", parsed.data.atletaId);
+    .eq("id", parsed.data.peleadorId);
 
   if (error) return { error: "No se pudo actualizar" };
 
-  revalidatePath(`/app/atletas/${parsed.data.atletaId}`);
+  revalidatePath(`/app/atletas/${parsed.data.peleadorId}`);
   revalidatePath("/app/atletas");
   return { ok: "Datos actualizados" };
+}
+
+/**
+ * Borra solo lo que registró TU academia: la fila de `peleador` y el
+ * historial de pelea que tu organización le cargó. No toca el registro
+ * compartido `atleta` (otras academias pueden seguir usándolo) ni el
+ * historial que haya registrado cualquier otra organización — RLS ya
+ * scopea ambos deletes por `organizacion_id`, esto no necesitó una
+ * política nueva (`peleador_escritura`/`historial_escritura` ya cubrían
+ * este caso desde el esquema base).
+ */
+export async function eliminarPeleador(
+  _prev: EstadoFormulario,
+  datos: FormData
+): Promise<EstadoFormulario> {
+  const peleadorId = String(datos.get("peleadorId") ?? "");
+  const atletaId = String(datos.get("atletaId") ?? "");
+  if (!peleadorId) return { error: "Falta el peleador a eliminar" };
+
+  if (!HAY_SUPABASE) return { ok: "Modo demo: no se guarda." };
+
+  const supabase = await crearClienteServidor();
+  const { data: academias } = await supabase.from("v_mis_academias").select("id").limit(1);
+  const organizacionId = academias?.[0]?.id;
+  if (!organizacionId) return { error: "No tienes una academia" };
+
+  if (atletaId) {
+    await supabase
+      .from("historial_pelea")
+      .delete()
+      .eq("atleta_id", atletaId)
+      .eq("organizacion_id", organizacionId);
+  }
+
+  const { error } = await supabase.from("peleador").delete().eq("id", peleadorId);
+  if (error) return { error: "No se pudo eliminar" };
+
+  revalidatePath("/app/atletas");
+  return { ok: "Eliminado de tu academia" };
+}
+
+/** Búsqueda explícita, bajo demanda: nunca se dispara sola. Ver
+ *  `peleasEnOtrasAcademias` (services/atletas.ts) y `peleas_otras_academias`
+ *  (migración 20260101000018) para el porqué no filtra ni expone detalle. */
+export async function consultarOtrasAcademias(
+  _prev: EstadoFormulario,
+  datos: FormData
+): Promise<EstadoFormulario> {
+  const documento = String(datos.get("documento") ?? "");
+  if (!documento) return { error: "Falta el documento" };
+
+  const n = await peleasEnOtrasAcademias(documento);
+  return n > 0
+    ? { ok: `Tiene ${n} pelea${n === 1 ? "" : "s"} registrada${n === 1 ? "" : "s"} en otra academia de sass-combate.` }
+    : { ok: "No se encontraron peleas de esta persona en otras academias de sass-combate." };
 }

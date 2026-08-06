@@ -6,10 +6,8 @@ import { Aviso, BotonEnvio } from "@/components/ui/formulario";
 import { Campo } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-/**
- * Carga a mano una pelea que el atleta hizo fuera de la plataforma.
- * Es lo que evita que alguien con experiencia entre como debutante.
- */
+/** Carga a mano una pelea que el atleta hizo fuera de la plataforma o en un
+ *  evento que tu academia organizó antes de usar sass-combate. */
 export function AgregarPeleaExterna({ atletaId }: { atletaId: string }) {
   const [estado, accion] = useActionState<EstadoFormulario, FormData>(
     registrarPeleaExterna,
