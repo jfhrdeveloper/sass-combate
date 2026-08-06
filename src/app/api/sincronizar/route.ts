@@ -182,16 +182,21 @@ export async function POST(req: NextRequest) {
         const [nombres, ...resto] = fila.nombre.split(" ");
         const apellidos = resto.join(" ");
 
-        const { data: atleta } = await supabase
-          .from("atleta")
-          .upsert(
-            { documento: fila.documento, nombres, apellidos, nacimiento: fila.nacimiento, sexo: fila.sexo },
-            { onConflict: "documento" }
-          )
-          .select("id")
-          .single();
-
-        const { data: club } = await supabase.from("v_mi_club").select("id").limit(1).maybeSingle();
+        // Ninguna de estas tres depende del resultado de las otras dos (solo el
+        // siguiente paso, `peleador`, necesita atleta+club juntos) — pedirlas en
+        // paralelo ahorra 2 de los ~10 viajes de ida y vuelta que hacía este caso.
+        const [{ data: atleta }, { data: club }, { data: modalidad }] = await Promise.all([
+          supabase
+            .from("atleta")
+            .upsert(
+              { documento: fila.documento, nombres, apellidos, nacimiento: fila.nacimiento, sexo: fila.sexo },
+              { onConflict: "documento" }
+            )
+            .select("id")
+            .single(),
+          supabase.from("v_mi_club").select("id").limit(1).maybeSingle(),
+          supabase.from("modalidad").select("id").eq("codigo", fila.modalidad).limit(1).maybeSingle(),
+        ]);
 
         // upsert por organizacion_id+documento: reenviar la misma operación no duplica al peleador.
         // Teléfono/correo son los que llegan con esta inscripción; si no llegan, no se tocan los que ya tenía.
@@ -214,13 +219,6 @@ export async function POST(req: NextRequest) {
           )
           .select("id")
           .single();
-
-        const { data: modalidad } = await supabase
-          .from("modalidad")
-          .select("id")
-          .eq("codigo", fila.modalidad)
-          .limit(1)
-          .maybeSingle();
 
         if (!peleador || !modalidad) {
           return NextResponse.json({ error: "peleador o modalidad no encontrados" }, { status: 422 });

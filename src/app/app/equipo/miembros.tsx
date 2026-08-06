@@ -5,14 +5,16 @@ import { eliminarMiembro, type EstadoFormulario } from "@/actions/academia";
 import { Aviso } from "@/components/ui/formulario";
 import { Boton } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { NOMBRE_ROL } from "@/config/roles";
 import type { MiembroEquipo } from "@/services/equipo";
 import { fechaLarga } from "@/utils/format";
@@ -22,20 +24,20 @@ function DialogoQuitar({ miembro }: { miembro: MiembroEquipo }) {
   const [estado, accion] = useActionState<EstadoFormulario, FormData>(eliminarMiembro, {});
 
   return (
-    <Dialog open={abierto} onOpenChange={setAbierto}>
-      <DialogTrigger asChild>
+    <AlertDialog open={abierto} onOpenChange={setAbierto}>
+      <AlertDialogTrigger asChild>
         <Boton type="button" variante="fantasma" tamano="sm">
           Quitar
         </Boton>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>¿Quitar a {miembro.nombre ?? miembro.email}?</DialogTitle>
-          <DialogDescription>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>¿Quitar a {miembro.nombre ?? miembro.email}?</AlertDialogTitle>
+          <AlertDialogDescription>
             Pierde acceso al panel de esta academia de inmediato. No borra nada de lo que ya cargó
             (resultados, pesajes, pagos), solo su acceso.
-          </DialogDescription>
-        </DialogHeader>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
         <form
           action={async (datos) => {
             await accion(datos);
@@ -44,17 +46,21 @@ function DialogoQuitar({ miembro }: { miembro: MiembroEquipo }) {
         >
           <input type="hidden" name="miembroId" value={miembro.id} />
           <Aviso error={estado.error} />
-          <DialogFooter>
-            <Boton type="button" variante="contorno" tamano="sm" onClick={() => setAbierto(false)}>
-              Cancelar
-            </Boton>
-            <Boton type="submit" variante="roja" tamano="sm">
-              Quitar
-            </Boton>
-          </DialogFooter>
+          <AlertDialogFooter>
+            <AlertDialogCancel asChild>
+              <Boton type="button" variante="contorno" tamano="sm">
+                Cancelar
+              </Boton>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Boton type="submit" variante="roja" tamano="sm">
+                Quitar
+              </Boton>
+            </AlertDialogAction>
+          </AlertDialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 

@@ -15,6 +15,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { NOMBRE_MODALIDAD, type CategoriaPeso, type ModalidadCodigo } from "@/types";
 
 const MODALIDADES = Object.entries(NOMBRE_MODALIDAD) as [ModalidadCodigo, string][];
@@ -97,20 +108,20 @@ function DialogoEliminar({ eventoId, categoria }: { eventoId: string; categoria:
   const [, accion] = useActionState<EstadoFormulario, FormData>(eliminarCategoria, {});
 
   return (
-    <Dialog open={abierto} onOpenChange={setAbierto}>
-      <DialogTrigger asChild>
+    <AlertDialog open={abierto} onOpenChange={setAbierto}>
+      <AlertDialogTrigger asChild>
         <Boton type="button" variante="fantasma" tamano="sm">
           Eliminar
         </Boton>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>¿Eliminar &ldquo;{categoria.nombre}&rdquo;?</DialogTitle>
-          <DialogDescription>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>¿Eliminar &ldquo;{categoria.nombre}&rdquo;?</AlertDialogTitle>
+          <AlertDialogDescription>
             Los peleadores que ya tenían esta categoría se quedan sin etiqueta de peso. No afecta el
             emparejador ni sus pesajes ya registrados.
-          </DialogDescription>
-        </DialogHeader>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
         <form
           action={async (datos) => {
             await accion(datos);
@@ -119,17 +130,21 @@ function DialogoEliminar({ eventoId, categoria }: { eventoId: string; categoria:
         >
           <input type="hidden" name="eventoId" value={eventoId} />
           <input type="hidden" name="categoriaId" value={categoria.id} />
-          <DialogFooter>
-            <Boton type="button" variante="contorno" tamano="sm" onClick={() => setAbierto(false)}>
-              Cancelar
-            </Boton>
-            <Boton type="submit" variante="roja" tamano="sm">
-              Eliminar
-            </Boton>
-          </DialogFooter>
+          <AlertDialogFooter>
+            <AlertDialogCancel asChild>
+              <Boton type="button" variante="contorno" tamano="sm">
+                Cancelar
+              </Boton>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Boton type="submit" variante="roja" tamano="sm">
+                Eliminar
+              </Boton>
+            </AlertDialogAction>
+          </AlertDialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 
