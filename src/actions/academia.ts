@@ -70,3 +70,46 @@ export async function invitarMiembro(
   revalidatePath("/app/equipo");
   return { ok: `Invitación creada para ${parsed.data.email}` };
 }
+
+/** No deja sacar a un dueño desde acá — transferir o quitar la titularidad
+ *  de la academia es un flujo aparte, no algo que este botón deba resolver
+ *  de paso. RLS (`miembro_eliminacion`) además exige que quien saca sea
+ *  dueño/admin de esa misma organización. */
+export async function eliminarMiembro(
+  _prev: EstadoFormulario,
+  datos: FormData
+): Promise<EstadoFormulario> {
+  const miembroId = String(datos.get("miembroId") ?? "");
+  if (!miembroId) return { error: "Falta el miembro a eliminar" };
+
+  if (!HAY_SUPABASE) return { ok: "Modo demo: no se guarda." };
+
+  const supabase = await crearClienteServidor();
+  const { data: fila } = await supabase.from("miembro").select("rol").eq("id", miembroId).maybeSingle();
+  if (fila?.rol === "dueno") {
+    return { error: "No se puede quitar al dueño de la academia desde acá" };
+  }
+
+  const { error } = await supabase.from("miembro").delete().eq("id", miembroId);
+  if (error) return { error: "No se pudo quitar a esa persona" };
+
+  revalidatePath("/app/equipo");
+  return { ok: "Miembro eliminado" };
+}
+
+export async function cancelarInvitacion(
+  _prev: EstadoFormulario,
+  datos: FormData
+): Promise<EstadoFormulario> {
+  const invitacionId = String(datos.get("invitacionId") ?? "");
+  if (!invitacionId) return { error: "Falta la invitación a cancelar" };
+
+  if (!HAY_SUPABASE) return { ok: "Modo demo: no se guarda." };
+
+  const supabase = await crearClienteServidor();
+  const { error } = await supabase.from("invitacion").delete().eq("id", invitacionId);
+  if (error) return { error: "No se pudo cancelar la invitación" };
+
+  revalidatePath("/app/equipo");
+  return { ok: "Invitación cancelada" };
+}

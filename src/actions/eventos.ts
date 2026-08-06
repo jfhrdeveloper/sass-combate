@@ -153,6 +153,57 @@ export async function crearCategoria(
   return { ok: "Categoría creada" };
 }
 
+const categoriaEditSchema = z
+  .object({
+    categoriaId: z.string().min(1),
+    eventoId: z.string().min(1),
+    nombre: z.string().min(1, "Escribe un nombre para la categoría"),
+    sexo: z.enum(["M", "F"]).optional(),
+    pesoMin: z.coerce.number().positive().optional(),
+    pesoMax: z.coerce.number().positive().optional(),
+  })
+  .refine((d) => d.pesoMin != null || d.pesoMax != null, {
+    message: "Define al menos un peso mínimo o máximo (iguales para un peso exacto)",
+    path: ["pesoMin"],
+  });
+
+/** Mismas reglas de peso/sexo que `crearCategoria`, pero sobre una fila
+ *  existente (`.update()` en vez de `.insert()`). No deja tocar la
+ *  modalidad: cambiarla reventaría los cruces del emparejador que ya la
+ *  usan como filtro; para cambiar de modalidad hay que borrar y crear de
+ *  nuevo, a propósito. */
+export async function editarCategoria(
+  _prev: EstadoFormulario,
+  datos: FormData
+): Promise<EstadoFormulario> {
+  const parsed = categoriaEditSchema.safeParse({
+    categoriaId: datos.get("categoriaId"),
+    eventoId: datos.get("eventoId"),
+    nombre: datos.get("nombre"),
+    sexo: datos.get("sexo") === "todos" ? undefined : datos.get("sexo") || undefined,
+    pesoMin: datos.get("pesoMin") || undefined,
+    pesoMax: datos.get("pesoMax") || undefined,
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  if (!HAY_SUPABASE) return { ok: "Modo demo: la categoría no se guarda." };
+
+  const supabase = await crearClienteServidor();
+  const { error } = await supabase
+    .from("categoria")
+    .update({
+      nombre: parsed.data.nombre,
+      sexo: parsed.data.sexo ?? null,
+      peso_min: parsed.data.pesoMin ?? null,
+      peso_max: parsed.data.pesoMax ?? null,
+    })
+    .eq("id", parsed.data.categoriaId);
+  if (error) return { error: "No se pudo actualizar la categoría" };
+
+  revalidatePath(`/app/eventos/${parsed.data.eventoId}`);
+  return { ok: "Categoría actualizada" };
+}
+
 export async function eliminarCategoria(
   _prev: EstadoFormulario,
   datos: FormData

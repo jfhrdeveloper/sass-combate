@@ -22,6 +22,7 @@ Correr en el SQL Editor de Supabase, en este orden exacto:
 | `supabase/migrations/20260101000010_plan_por_evento.sql` | `evento.plan_vence_en` — desbloqueo del plan "Por evento" ahora es por evento puntual (comprado desde `/api/pagos/evento`), no organización completa. El plan Academia sigue siendo por organización. |
 | `supabase/migrations/20260101000014_descuento_pago.sql` | `pago.descuento_tipo`/`descuento_valor` (monto fijo o porcentaje, puntual por pago) + `pago.monto_final` (columna generada, el descuento ya aplicado). Se agrega al aprobar el pago (dueño/admin), no al registrarlo. |
 | `supabase/migrations/20260101000015_auditoria_con_nombre.sql` | Política `perfil_companeros` (lee el perfil de cualquiera que comparta organización vía `miembro`, además de `perfil_propio`) + vista `v_auditoria` (join explícito `auditoria`+`perfil`, `security_invoker`) para que `/app/auditoria` muestre el nombre de quien hizo el cambio en vez del UUID crudo. |
+| `supabase/migrations/20260101000016_equipo_gestion.sql` | Política `miembro_eliminacion` (solo dueño/admin de la misma organización) — `miembro` no tenía ninguna política de escritura fuera de las funciones `security definer` que la insertan. Vista `v_equipo` (join explícito `miembro`+`perfil`, mismo motivo que `v_auditoria`) para que `/app/equipo` liste a quién ya es miembro, no solo el formulario de invitar. |
 
 Opcional, después de las migraciones: `supabase/seed_kick1.sql` carga el evento real de ejemplo (47 clubes, 154 peleadores, 78 peleas — el torneo KICK1 Contender 2026).
 
@@ -34,5 +35,6 @@ Falta crear a mano en Supabase Storage: un bucket **privado** llamado `comproban
 Ver `docs/architecture.md` §10 para el detalle completo. Resumen:
 - `nivel_por_peleas` (función SQL) debe mantenerse igual a `src/lib/nivel.ts`.
 - `atleta` cruza organizaciones a propósito; el detalle de cada evento no.
+- `atleta` no tiene política de `delete` (a propósito, no un descuido): borrarla arrastra por cascada el historial de pelea de **todas** las academias que la comparten, no solo la que borra. `editarAtleta` (`src/actions/atletas.ts`) sí existe (la política de `update` ya cubría esto desde el esquema base); eliminar necesitaría una decisión de producto aparte antes de habilitarla.
 - `pelea.duracion_est_seg` es una columna generada (`generated always as`) — nunca se escribe a mano, se calcula a partir de rounds/duración/descanso.
 - `push_suscripcion` y `notificacion_enviada` no tienen política de insert: a propósito, para que solo `service_role` (nunca RLS de sesión) pueda escribir ahí — ver `src/lib/supabase/admin.ts`.

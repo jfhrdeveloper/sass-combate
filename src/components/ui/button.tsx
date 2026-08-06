@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/utils/cn";
 
@@ -28,6 +29,12 @@ export const estilos = cva(
 export type BotonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
   VariantProps<typeof estilos>;
 
-export function Boton({ className, variante, tamano, ...props }: BotonProps) {
-  return <button className={cn(estilos({ variante, tamano }), className)} {...props} />;
-}
+/** `forwardRef`: lo necesita Radix (`asChild` en `DialogTrigger`/`SelectTrigger`
+ *  y similares) para adjuntar su propio ref al `<button>` real sin anidarlo
+ *  dentro de otro elemento interactivo. */
+export const Boton = forwardRef<HTMLButtonElement, BotonProps>(function Boton(
+  { className, variante, tamano, ...props },
+  ref
+) {
+  return <button ref={ref} className={cn(estilos({ variante, tamano }), className)} {...props} />;
+});

@@ -1,11 +1,20 @@
 "use client";
 
-import { useActionState } from "react";
-import { crearCategoria, eliminarCategoria, type EstadoFormulario } from "@/actions/eventos";
+import { useActionState, useState } from "react";
+import { crearCategoria, editarCategoria, eliminarCategoria, type EstadoFormulario } from "@/actions/eventos";
 import { Aviso, BotonEnvio } from "@/components/ui/formulario";
 import { Campo } from "@/components/ui/input";
 import { Boton } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { NOMBRE_MODALIDAD, type CategoriaPeso, type ModalidadCodigo } from "@/types";
 
 const MODALIDADES = Object.entries(NOMBRE_MODALIDAD) as [ModalidadCodigo, string][];
@@ -19,16 +28,108 @@ function rangoTexto(c: CategoriaPeso): string {
   return `hasta ${c.peso_max}kg`;
 }
 
-function BotonEliminar({ eventoId, categoriaId }: { eventoId: string; categoriaId: string }) {
-  const [, accion] = useActionState<EstadoFormulario, FormData>(eliminarCategoria, {});
+function DialogoEditar({ eventoId, categoria }: { eventoId: string; categoria: CategoriaPeso }) {
+  const [abierto, setAbierto] = useState(false);
+  const [estado, accion] = useActionState<EstadoFormulario, FormData>(editarCategoria, {});
+
   return (
-    <form action={accion}>
-      <input type="hidden" name="eventoId" value={eventoId} />
-      <input type="hidden" name="categoriaId" value={categoriaId} />
-      <Boton type="submit" variante="fantasma" tamano="sm">
-        Eliminar
-      </Boton>
-    </form>
+    <Dialog open={abierto} onOpenChange={setAbierto}>
+      <DialogTrigger asChild>
+        <Boton type="button" variante="fantasma" tamano="sm">
+          Editar
+        </Boton>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Editar categoría</DialogTitle>
+          <DialogDescription>
+            La modalidad no se puede cambiar acá: para eso, elimina esta categoría y crea una nueva.
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          action={async (datos) => {
+            await accion(datos);
+            setAbierto(false);
+          }}
+          className="grid gap-3"
+        >
+          <input type="hidden" name="eventoId" value={eventoId} />
+          <input type="hidden" name="categoriaId" value={categoria.id} />
+          <label className="grid gap-1 text-sm">
+            <span className="text-slate-600 dark:text-slate-400">Nombre</span>
+            <Campo name="nombre" defaultValue={categoria.nombre} required />
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="grid gap-1 text-sm">
+              <span className="text-slate-600 dark:text-slate-400">Peso mínimo (kg)</span>
+              <Campo name="pesoMin" type="number" step="0.1" min="0" defaultValue={categoria.peso_min ?? ""} />
+            </label>
+            <label className="grid gap-1 text-sm">
+              <span className="text-slate-600 dark:text-slate-400">Peso máximo (kg)</span>
+              <Campo name="pesoMax" type="number" step="0.1" min="0" defaultValue={categoria.peso_max ?? ""} />
+            </label>
+          </div>
+          <label className="grid gap-1 text-sm">
+            <span className="text-slate-600 dark:text-slate-400">Sexo (opcional)</span>
+            <Select name="sexo" defaultValue={categoria.sexo ?? "todos"}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Cualquiera</SelectItem>
+                <SelectItem value="M">Varones</SelectItem>
+                <SelectItem value="F">Mujeres</SelectItem>
+              </SelectContent>
+            </Select>
+          </label>
+          <Aviso error={estado.error} ok={estado.ok} />
+          <DialogFooter>
+            <BotonEnvio>Guardar cambios</BotonEnvio>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DialogoEliminar({ eventoId, categoria }: { eventoId: string; categoria: CategoriaPeso }) {
+  const [abierto, setAbierto] = useState(false);
+  const [, accion] = useActionState<EstadoFormulario, FormData>(eliminarCategoria, {});
+
+  return (
+    <Dialog open={abierto} onOpenChange={setAbierto}>
+      <DialogTrigger asChild>
+        <Boton type="button" variante="fantasma" tamano="sm">
+          Eliminar
+        </Boton>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>¿Eliminar &ldquo;{categoria.nombre}&rdquo;?</DialogTitle>
+          <DialogDescription>
+            Los peleadores que ya tenían esta categoría se quedan sin etiqueta de peso. No afecta el
+            emparejador ni sus pesajes ya registrados.
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          action={async (datos) => {
+            await accion(datos);
+            setAbierto(false);
+          }}
+        >
+          <input type="hidden" name="eventoId" value={eventoId} />
+          <input type="hidden" name="categoriaId" value={categoria.id} />
+          <DialogFooter>
+            <Boton type="button" variante="contorno" tamano="sm" onClick={() => setAbierto(false)}>
+              Cancelar
+            </Boton>
+            <Boton type="submit" variante="roja" tamano="sm">
+              Eliminar
+            </Boton>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -69,7 +170,10 @@ export function CategoriasEvento({
                   {c.sexo ? ` · ${c.sexo === "M" ? "Varones" : "Mujeres"}` : ""} · {rangoTexto(c)}
                 </span>
               </span>
-              <BotonEliminar eventoId={eventoId} categoriaId={c.id} />
+              <span className="flex shrink-0 items-center gap-1">
+                <DialogoEditar eventoId={eventoId} categoria={c} />
+                <DialogoEliminar eventoId={eventoId} categoria={c} />
+              </span>
             </li>
           ))}
         </ul>

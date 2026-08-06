@@ -5,6 +5,7 @@ import { historialVisible, obtenerAtleta } from "@/services/atletas";
 import { ETIQUETA_NIVEL, nivelPorPeleas } from "@/lib/nivel";
 import { fechaLarga, kg } from "@/utils/format";
 import { AgregarPeleaExterna } from "./agregar";
+import { EditarAtleta } from "./editar";
 
 export default async function PaginaAtleta({
   params,
@@ -21,13 +22,18 @@ export default async function PaginaAtleta({
 
   return (
     <main className="mx-auto max-w-3xl p-6">
-      <h1 className="text-2xl font-semibold">
-        {atleta.nombres} {atleta.apellidos}
-      </h1>
-      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-        DNI {atleta.documento}
-        {atleta.nacimiento ? ` · nacido el ${fechaLarga(atleta.nacimiento)}` : ""}
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">
+            {atleta.nombres} {atleta.apellidos}
+          </h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+            DNI {atleta.documento}
+            {atleta.nacimiento ? ` · nacido el ${fechaLarga(atleta.nacimiento)}` : ""}
+          </p>
+        </div>
+        <EditarAtleta atleta={atleta} />
+      </div>
 
       <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Tarjeta>

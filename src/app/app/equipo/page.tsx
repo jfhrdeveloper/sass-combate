@@ -1,22 +1,13 @@
-"use client";
+import { listarEquipo, listarInvitacionesPendientes } from "@/services/equipo";
+import { FormularioInvitar } from "./invitar";
+import { ListaMiembros } from "./miembros";
+import { ListaInvitaciones } from "./invitaciones";
 
-import { useActionState } from "react";
-import { invitarMiembro, type EstadoFormulario } from "@/actions/academia";
-import { Aviso, BotonEnvio } from "@/components/ui/formulario";
-import { Campo } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { NOMBRE_ROL, type Rol } from "@/config/roles";
-
-const ROLES: Array<[Rol, string]> = [
-  ["admin", "Administra el evento completo"],
-  ["mesa", "Registra resultados durante la jornada"],
-  ["coach", "Inscribe y paga por los alumnos de su club"],
-  ["juez", "Consulta y puntúa"],
-  ["lector", "Solo mira"],
-];
-
-export default function PaginaEquipo() {
-  const [estado, accion] = useActionState<EstadoFormulario, FormData>(invitarMiembro, {});
+export default async function PaginaEquipo() {
+  const [miembros, invitaciones] = await Promise.all([
+    listarEquipo(),
+    listarInvitacionesPendientes(),
+  ]);
 
   return (
     <main className="mx-auto max-w-2xl p-6">
@@ -25,29 +16,13 @@ export default function PaginaEquipo() {
         Invita a quien va a estar en la mesa de control el día del evento.
       </p>
 
-      <form action={accion} className="mt-6 grid gap-4 rounded-xl border border-borde bg-panel p-5">
-        <label className="grid gap-1 text-sm">
-          <span className="text-slate-600 dark:text-slate-400">Correo</span>
-          <Campo name="email" type="email" required placeholder="mesa@academia.com" />
-        </label>
-        <label className="grid gap-1 text-sm">
-          <span className="text-slate-600 dark:text-slate-400">Rol</span>
-          <Select name="rol" defaultValue="mesa">
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {ROLES.map(([valor, desc]) => (
-                <SelectItem key={valor} value={valor}>
-                  {NOMBRE_ROL[valor]}: {desc}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </label>
-        <Aviso error={estado.error} ok={estado.ok} />
-        <BotonEnvio>Invitar</BotonEnvio>
-      </form>
+      <h2 className="mt-8 text-lg font-medium">Miembros</h2>
+      <ListaMiembros miembros={miembros} />
+
+      <ListaInvitaciones invitaciones={invitaciones} />
+
+      <h2 className="mt-8 text-lg font-medium">Invitar a alguien nuevo</h2>
+      <FormularioInvitar />
     </main>
   );
 }
