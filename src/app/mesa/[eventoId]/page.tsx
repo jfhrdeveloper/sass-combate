@@ -171,8 +171,8 @@ export default function MesaDeControl({
                     Gana{" "}
                     <span className={enEsta.esquina === "roja" ? "text-roja" : "text-azul"}>
                       {enEsta.esquina === "roja" ? roja?.nombre : azul?.nombre}
-                    </span>{" "}
-                    — ¿por qué método?
+                    </span>
+                    {", ¿por qué método?"}
                   </p>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                     {metodosDePelea(roja, azul).map((m) => (

@@ -156,7 +156,7 @@ export default async function PaginaEvento({
                     return (
                       <tr key={f.id} className="border-t border-borde bg-aviso-suave/60">
                         <td className="px-3 py-2 tabular-nums">{hora(f.inicio)}</td>
-                        <td className="px-3 py-2 text-slate-400 dark:text-slate-500">—</td>
+                        <td className="px-3 py-2 text-slate-400 dark:text-slate-500">-</td>
                         <td className="px-3 py-2 font-medium text-aviso-fuerte" colSpan={3}>
                           {f.nombre} ({Math.round(f.duracionSeg / 60)} min)
                         </td>
@@ -177,7 +177,7 @@ export default async function PaginaEvento({
                       <td className="px-3 py-2 text-slate-500 dark:text-slate-400">{f.orden}</td>
                       <td className="px-3 py-2">
                         <span className="font-display font-semibold text-roja">
-                          {roja?.nombre ?? "—"}
+                          {roja?.nombre ?? "-"}
                         </span>
                         <span className="block text-xs text-slate-500 dark:text-slate-400">
                           {roja?.club} · {kg(roja?.peso_pesaje ?? null)}
@@ -186,7 +186,7 @@ export default async function PaginaEvento({
                       </td>
                       <td className="px-3 py-2">
                         <span className="font-display font-semibold text-azul">
-                          {azul?.nombre ?? "—"}
+                          {azul?.nombre ?? "-"}
                         </span>
                         <span className="block text-xs text-slate-500 dark:text-slate-400">
                           {azul?.club} · {kg(azul?.peso_pesaje ?? null)}

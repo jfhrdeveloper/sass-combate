@@ -36,7 +36,7 @@ export async function GET(
       token: `demo${String(n + 1).padStart(4, "0")}`,
       nombre: i.nombre,
       club: i.club,
-      categoria: i.modalidades.map((m) => NOMBRE_MODALIDAD[m]).join(", ") || "—",
+      categoria: i.modalidades.map((m) => NOMBRE_MODALIDAD[m]).join(", ") || "-",
       peso: i.peso_pesaje ? `${i.peso_pesaje} kg` : "sin pesaje",
       area: i.modalidades.includes("low_kick") || i.modalidades.includes("k1") ? "Ring" : "Tatami 1",
     }));
@@ -77,7 +77,7 @@ export async function GET(
       token: f.token,
       nombre: `${f.peleador?.nombres ?? ""} ${f.peleador?.apellidos ?? ""}`.trim(),
       club: f.peleador?.club?.nombre ?? "Sin club",
-      categoria: `${f.modalidad?.nombre ?? "—"}${f.clase ? ` · clase ${f.clase}` : ""}`,
+      categoria: `${f.modalidad?.nombre ?? "-"}${f.clase ? ` · clase ${f.clase}` : ""}`,
       peso: f.peso_pesaje ? `${f.peso_pesaje} kg` : "sin pesaje",
       area: f.modalidad?.tipo_area === "ring" ? "Ring" : "Tatami",
     }));

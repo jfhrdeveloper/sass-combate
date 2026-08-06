@@ -22,7 +22,7 @@ export async function generateMetadata({
   }
 
   const { nombre, fecha, sede } = agenda.evento;
-  const titulo = `${nombre} — sass-combate`;
+  const titulo = `${nombre} · sass-combate`;
   const descripcion = `${fechaLarga(fecha)}${sede ? ` · ${sede}` : ""}. Programa en vivo, horarios estimados y resultados.`;
 
   return {

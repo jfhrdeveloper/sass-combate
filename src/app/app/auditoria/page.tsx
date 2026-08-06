@@ -1,6 +1,6 @@
 import { Tarjeta, TarjetaTitulo } from "@/components/ui/card";
 import { Paginador } from "@/components/ui/paginador";
-import { listarAuditoria } from "@/services/auditoria";
+import { listarAuditoria, nombreCampoAuditoria, nombreUsuarioAuditoria } from "@/services/auditoria";
 import { paginar } from "@/lib/paginacion";
 import { fechaHora } from "@/utils/format";
 import { cn } from "@/utils/cn";
@@ -45,7 +45,7 @@ export default async function PaginaAuditoria({
       <h1 className="text-2xl font-semibold">Auditoría</h1>
       <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
         Cada cambio de resultado queda registrado solo: quién lo hizo, cuándo y qué cambió. No se puede
-        editar ni borrar desde acá — es un historial, no una herramienta de corrección.
+        editar ni borrar desde acá, es un historial, no una herramienta de corrección.
       </p>
 
       <ul className="mt-6 grid gap-3">
@@ -62,7 +62,7 @@ export default async function PaginaAuditoria({
                     {e.tabla} · {e.registro_id.slice(0, 12)}
                   </TarjetaTitulo>
                   <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    {fechaHora(e.creado_en)} · {e.usuario_id ?? "sistema"}
+                    {fechaHora(e.creado_en)} · {nombreUsuarioAuditoria(e)}
                   </p>
                 </div>
                 <span
@@ -79,13 +79,13 @@ export default async function PaginaAuditoria({
                 <ul className="mt-3 grid gap-1 text-sm">
                   {cambios.map(([campo, antes, despues]) => (
                     <li key={campo} className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-slate-500 dark:text-slate-400">{campo}:</span>
+                      <span className="text-slate-500 dark:text-slate-400">{nombreCampoAuditoria(campo)}:</span>
                       {antes != null && (
                         <span className="text-slate-400 line-through dark:text-slate-500">
                           {String(antes)}
                         </span>
                       )}
-                      <span className="font-medium">{String(despues ?? "—")}</span>
+                      <span className="font-medium">{String(despues ?? "-")}</span>
                     </li>
                   ))}
                 </ul>

@@ -26,5 +26,5 @@ export function edadA(nacimiento: string | null, referencia: Date | string): num
 }
 
 export function kg(v: number | null): string {
-  return v == null ? "—" : `${v.toFixed(1)} kg`;
+  return v == null ? "-" : `${v.toFixed(1)} kg`;
 }

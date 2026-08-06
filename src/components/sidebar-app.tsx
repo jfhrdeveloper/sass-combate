@@ -6,7 +6,7 @@ import { PanelLeftClose, PanelLeftOpen, LogOut } from "lucide-react";
 import { navParaRol, esRutaActiva } from "@/config/nav-app";
 import { SelectorRolDemo } from "@/components/selector-rol-demo";
 import { cn } from "@/utils/cn";
-import type { Rol } from "@/config/roles";
+import { NOMBRE_ROL, type Rol } from "@/config/roles";
 
 interface Props {
   colapsado: boolean;
@@ -94,8 +94,8 @@ export function SidebarApp({
       {!haySupabase && (
         <div className="border-t border-borde px-3 py-3">
           {colapsado ? (
-            <p className="text-center text-[10px] font-semibold uppercase text-slate-400 dark:text-slate-500" title={`Rol demo: ${rol}`}>
-              {rol.slice(0, 3)}
+            <p className="text-center text-[10px] font-semibold uppercase text-slate-400 dark:text-slate-500" title={`Rol demo: ${NOMBRE_ROL[rol]}`}>
+              {NOMBRE_ROL[rol].slice(0, 3)}
             </p>
           ) : (
             <>

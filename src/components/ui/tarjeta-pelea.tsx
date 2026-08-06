@@ -31,13 +31,13 @@ export function TarjetaPelea({
           TAMANOS[tamano]
         )}
       >
-        {roja ?? "—"}
+        {roja ?? "-"}
       </p>
       <span className="shrink-0 rounded-full border border-borde bg-panel px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
         vs
       </span>
       <p className={cn("truncate font-display font-semibold text-azul", TAMANOS[tamano])}>
-        {azul ?? "—"}
+        {azul ?? "-"}
       </p>
     </div>
   );

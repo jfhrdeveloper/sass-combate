@@ -63,7 +63,7 @@ export default async function PanelPlataforma() {
                 <td className="px-3 py-2 tabular-nums">{a.eventos}</td>
                 <td className="px-3 py-2 tabular-nums">{a.inscripciones}</td>
                 <td className="px-3 py-2 text-slate-600 dark:text-slate-400">
-                  {a.ultimo_evento ? fechaLarga(a.ultimo_evento) : "—"}
+                  {a.ultimo_evento ? fechaLarga(a.ultimo_evento) : "-"}
                 </td>
               </tr>
             ))}

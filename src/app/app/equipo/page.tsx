@@ -4,8 +4,9 @@ import { useActionState } from "react";
 import { invitarMiembro, type EstadoFormulario } from "@/actions/academia";
 import { Aviso, BotonEnvio } from "@/components/ui/formulario";
 import { Campo } from "@/components/ui/input";
+import { NOMBRE_ROL, type Rol } from "@/config/roles";
 
-const ROLES: Array<[string, string]> = [
+const ROLES: Array<[Rol, string]> = [
   ["admin", "Administra el evento completo"],
   ["mesa", "Registra resultados durante la jornada"],
   ["coach", "Inscribe y paga por los alumnos de su club"],
@@ -37,7 +38,7 @@ export default function PaginaEquipo() {
           >
             {ROLES.map(([valor, desc]) => (
               <option key={valor} value={valor}>
-                {valor} — {desc}
+                {NOMBRE_ROL[valor]}: {desc}
               </option>
             ))}
           </select>

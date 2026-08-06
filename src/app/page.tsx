@@ -11,7 +11,7 @@ import { urlWhatsApp } from "@/config/contacto";
 import { NOMBRE_MODALIDAD } from "@/types";
 import { cn } from "@/utils/cn";
 
-const TITULO = "sass-combate — Torneos de kickboxing, muay thai y MMA sin Excel";
+const TITULO = "sass-combate: Torneos de kickboxing, muay thai y MMA sin Excel";
 const DESCRIPCION =
   "Software para academias de deportes de contacto: inscripciones, emparejamiento automático, horarios en vivo, pesaje y resultados, incluso sin internet. Para kickboxing, muay thai, boxeo y MMA.";
 

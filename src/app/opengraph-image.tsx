@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "sass-combate — Tu torneo, sin el Excel";
+export const alt = "sass-combate: tu torneo, sin el Excel";
 
 /** Imagen que se ve al compartir el link de la landing (WhatsApp, Twitter, etc.). */
 export default async function Image() {

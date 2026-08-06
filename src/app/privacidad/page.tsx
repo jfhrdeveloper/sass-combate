@@ -3,7 +3,7 @@ import { NavLanding } from "@/components/nav-landing";
 import { FooterLanding } from "@/components/footer-landing";
 
 export const metadata: Metadata = {
-  title: "Política de privacidad — sass-combate",
+  title: "Política de privacidad",
   description: "Qué datos recopila sass-combate, para qué los usa y con quién los comparte.",
 };
 
@@ -52,7 +52,7 @@ export default function PaginaPrivacidad() {
             </h2>
             <ul className="mt-2 grid gap-1.5 list-disc pl-5 leading-relaxed">
               <li>Organizar el evento: inscripciones, pesaje, emparejamiento, horarios, resultados y actas.</li>
-              <li>Reconocer a un peleador que ya compitió antes (por su documento) para calcular su nivel deportivo, aunque cambie de academia — por eso ese registro se comparte entre academias.</li>
+              <li>Reconocer a un peleador que ya compitió antes (por su documento) para calcular su nivel deportivo, aunque cambie de academia: por eso ese registro se comparte entre academias.</li>
               <li>Avisarte por email, SMS, WhatsApp o notificación push cuando tu pelea esté por empezar, solo si diste ese dato de contacto o activaste el aviso.</li>
               <li>Generar tu credencial con QR y el acta oficial del evento.</li>
               <li>Revisar y aprobar comprobantes de pago.</li>

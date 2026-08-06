@@ -2,6 +2,17 @@ export type Rol = "dueno" | "admin" | "mesa" | "coach" | "juez" | "lector";
 
 export const ROLES: Rol[] = ["dueno", "admin", "mesa", "coach", "juez", "lector"];
 
+/** Texto legible de cada rol. Nunca renderizar el valor crudo del enum
+ *  directo al usuario (sale "dueno", sin ñ ni mayúscula). */
+export const NOMBRE_ROL: Record<Rol, string> = {
+  dueno: "Dueño",
+  admin: "Administrador",
+  mesa: "Mesa de control",
+  coach: "Coach",
+  juez: "Juez",
+  lector: "Lector",
+};
+
 export const COOKIE_ROL_DEMO = "demo_rol";
 
 export interface CuentaDemo {

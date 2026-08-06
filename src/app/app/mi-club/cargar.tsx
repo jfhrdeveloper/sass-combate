@@ -99,15 +99,15 @@ export function CargarLista({ eventoId }: { eventoId: string }) {
                   className={`border-t border-borde ${f.error ? "bg-error-suave" : ""}`}
                 >
                   <td className="px-3 py-2">
-                    {f.nombre || "—"}
+                    {f.nombre || "-"}
                     {f.error && (
                       <span className="block text-xs text-error-fuerte">{f.error}</span>
                     )}
                   </td>
-                  <td className="px-3 py-2 tabular-nums">{f.documento || "—"}</td>
-                  <td className="px-3 py-2 tabular-nums">{f.nacimiento || "—"}</td>
-                  <td className="px-3 py-2 tabular-nums">{f.peso || "—"}</td>
-                  <td className="px-3 py-2">{f.modalidad || "—"}</td>
+                  <td className="px-3 py-2 tabular-nums">{f.documento || "-"}</td>
+                  <td className="px-3 py-2 tabular-nums">{f.nacimiento || "-"}</td>
+                  <td className="px-3 py-2 tabular-nums">{f.peso || "-"}</td>
+                  <td className="px-3 py-2">{f.modalidad || "-"}</td>
                 </tr>
               ))}
             </tbody>

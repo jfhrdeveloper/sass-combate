@@ -26,7 +26,7 @@ export default async function PaginaPlan() {
       <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
         ¿Solo necesitas destrabar el tope de 40 inscritos de un evento
         puntual, sin pagar la academia completa? Eso se compra desde ese
-        evento — entra a él y buscá &ldquo;Desbloquear evento&rdquo;.
+        evento: entra a él y buscá &ldquo;Desbloquear evento&rdquo;.
       </p>
 
       <Tarjeta className="mt-6">

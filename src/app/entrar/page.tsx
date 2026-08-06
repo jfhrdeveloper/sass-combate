@@ -9,7 +9,7 @@ import { Aviso, BotonEnvio } from "@/components/ui/formulario";
 import { Campo } from "@/components/ui/input";
 import { Boton } from "@/components/ui/button";
 import { HAY_SUPABASE } from "@/lib/datos";
-import { CUENTAS_DEMO } from "@/config/roles";
+import { CUENTAS_DEMO, NOMBRE_ROL } from "@/config/roles";
 
 function Formulario() {
   const params = useSearchParams();
@@ -69,15 +69,15 @@ export default function PaginaEntrar() {
         <div className="mt-6 rounded-xl border border-borde bg-aviso-suave p-4 text-xs text-aviso-fuerte">
           <p className="font-semibold">Modo demo: entrar directo por rol</p>
           <p className="mt-1 text-aviso-fuerte/80">
-            No hay Supabase conectado, así que no son cuentas reales — un click entra
+            No hay Supabase conectado, así que no son cuentas reales: un click entra
             directo con ese rol, sin escribir nada.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {CUENTAS_DEMO.map((c) => (
               <form key={c.rol} action={cambiarRolDemo}>
                 <input type="hidden" name="rol" value={c.rol} />
-                <Boton type="submit" variante="contorno" tamano="sm" className="capitalize">
-                  {c.rol}
+                <Boton type="submit" variante="contorno" tamano="sm">
+                  {NOMBRE_ROL[c.rol]}
                 </Boton>
               </form>
             ))}
@@ -87,7 +87,7 @@ export default function PaginaEntrar() {
           <ul className="mt-2 grid gap-1 font-mono">
             {CUENTAS_DEMO.map((c) => (
               <li key={c.email}>
-                {c.rol}: {c.email} / {c.password}
+                {NOMBRE_ROL[c.rol]}: {c.email} / {c.password}
               </li>
             ))}
           </ul>

@@ -48,7 +48,7 @@ export function DesbloquearEvento({ eventoId, email, cubiertoPorAcademia, venceE
   if (cubiertoPorAcademia) {
     return (
       <p className="rounded-lg bg-exito-suave px-3 py-2 text-sm text-exito-fuerte">
-        Cubierto por tu plan Academia — sin tope de inscritos.
+        Cubierto por tu plan Academia, sin tope de inscritos.
       </p>
     );
   }
@@ -56,7 +56,7 @@ export function DesbloquearEvento({ eventoId, email, cubiertoPorAcademia, venceE
   if (vigente) {
     return (
       <p className="rounded-lg bg-exito-suave px-3 py-2 text-sm text-exito-fuerte">
-        Evento desbloqueado hasta {fechaLarga(venceEn!)} — sin tope de inscritos.
+        Evento desbloqueado hasta {fechaLarga(venceEn!)}, sin tope de inscritos.
       </p>
     );
   }
@@ -123,7 +123,7 @@ export function DesbloquearEvento({ eventoId, email, cubiertoPorAcademia, venceE
       <p className="text-xs text-slate-500 dark:text-slate-400">
         El plan Gratis cubre hasta 40 inscritos en este evento. Desbloquearlo quita
         ese tope por {" "}
-        <span className="font-medium">45 días</span> — solo para este evento, no
+        <span className="font-medium">45 días</span>, solo para este evento, no
         para toda la academia.
       </p>
     </div>

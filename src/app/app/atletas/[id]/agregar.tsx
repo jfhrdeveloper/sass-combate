@@ -55,7 +55,7 @@ export function AgregarPeleaExterna({ atletaId }: { atletaId: string }) {
         </label>
         <label className="grid gap-1 text-sm">
           <span className="text-slate-600 dark:text-slate-400">Método</span>
-          <Campo name="metodo" placeholder="decisión, rsc…" />
+          <Campo name="metodo" placeholder="Decisión, RSC, etc." />
         </label>
 
         <div className="sm:col-span-2">

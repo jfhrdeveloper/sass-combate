@@ -4,7 +4,7 @@ import { NavLanding } from "@/components/nav-landing";
 import { FooterLanding } from "@/components/footer-landing";
 
 export const metadata: Metadata = {
-  title: "Términos y condiciones — sass-combate",
+  title: "Términos y condiciones",
   description: "Términos y condiciones de uso de la plataforma sass-combate.",
 };
 

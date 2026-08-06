@@ -48,7 +48,7 @@ export default async function PaginaAtleta({
         <Tarjeta>
           <TarjetaTitulo>Última pelea</TarjetaTitulo>
           <TarjetaDato className="text-xl">
-            {atleta.ultima_pelea ? fechaLarga(atleta.ultima_pelea) : "—"}
+            {atleta.ultima_pelea ? fechaLarga(atleta.ultima_pelea) : "-"}
           </TarjetaDato>
         </Tarjeta>
       </section>
@@ -67,7 +67,7 @@ export default async function PaginaAtleta({
             <span className="min-w-0 flex-1 text-sm">
               <span className="font-medium">{h.evento}</span>
               <span className="block text-xs text-slate-500 dark:text-slate-400">
-                vs {h.rival ?? "—"}
+                vs {h.rival ?? "-"}
                 {h.club_rival ? ` (${h.club_rival})` : ""} · {h.modalidad ?? h.disciplina}
                 {h.peso ? ` · ${kg(h.peso)}` : ""}
                 {h.externa ? " · cargada a mano" : ""}

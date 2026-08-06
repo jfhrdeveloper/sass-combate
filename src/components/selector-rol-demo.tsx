@@ -1,11 +1,12 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { NOMBRE_ROL, type Rol } from "@/config/roles";
 
 interface Props {
   accion: (formData: FormData) => void;
-  rolActual: string;
-  roles: readonly string[];
+  rolActual: Rol;
+  roles: readonly Rol[];
 }
 
 /** Solo modo demo: cambia el rol simulado sin recargar la página a mano. */
@@ -23,7 +24,7 @@ export function SelectorRolDemo({ accion, rolActual, roles }: Props) {
       >
         {roles.map((rol) => (
           <option key={rol} value={rol}>
-            {rol}
+            {NOMBRE_ROL[rol]}
           </option>
         ))}
       </select>

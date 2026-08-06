@@ -25,7 +25,7 @@ const body = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL(URL_BASE),
-  title: { default: "sass-combate", template: "%s — sass-combate" },
+  title: { default: "sass-combate", template: "%s · sass-combate" },
   description: "Gestión de eventos de deportes de contacto",
   manifest: "/manifest.json",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Torneos" },

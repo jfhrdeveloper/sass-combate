@@ -195,7 +195,7 @@ export default function PaginaEmparejar() {
         <section className="mt-8">
           <h2 className="text-lg font-medium">Emparejamientos manuales</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Armados a mano arrastrando peleadores de &ldquo;sin rival&rdquo; — el motor no los propuso.
+            Armados a mano arrastrando peleadores de &ldquo;sin rival&rdquo;: el motor no los propuso.
           </p>
           <ul className="mt-3 grid gap-2">
             {manuales.map((par) => (
@@ -224,7 +224,7 @@ export default function PaginaEmparejar() {
         <section className="mt-8">
           <h2 className="text-lg font-medium">Sin rival</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Hay que bajar tolerancias, fusionar categorías, avisar al coach — o arrastrar dos
+            Hay que bajar tolerancias, fusionar categorías, avisar al coach, o arrastrar dos
             peleadores entre sí para emparejarlos a mano.
           </p>
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">

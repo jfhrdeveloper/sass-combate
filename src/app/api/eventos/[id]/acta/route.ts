@@ -43,10 +43,10 @@ export async function GET(
             orden: f.orden,
             hora: hora(f.inicio),
             area: ag.area.nombre,
-            roja: `${roja?.nombre ?? "—"} (${roja?.club ?? ""})`,
-            azul: `${azul?.nombre ?? "—"} (${azul?.club ?? ""})`,
-            modalidad: roja?.modalidades[0] ?? "—",
-            ganador: f.estado === "finalizada" ? (roja?.nombre ?? "—") : "—",
+            roja: `${roja?.nombre ?? "-"} (${roja?.club ?? ""})`,
+            azul: `${azul?.nombre ?? "-"} (${azul?.club ?? ""})`,
+            modalidad: roja?.modalidades[0] ?? "-",
+            ganador: f.estado === "finalizada" ? (roja?.nombre ?? "-") : "-",
             metodo: f.estado === "finalizada" ? "decision" : "",
           };
         })
@@ -87,13 +87,13 @@ export async function GET(
 
     filas = ((data ?? []) as Fila[]).map((f) => ({
       orden: f.orden,
-      hora: f.hora_estimada ? hora(f.hora_estimada) : "—",
-      area: f.area ?? "—",
-      roja: `${f.roja ?? "—"} (${f.club_roja ?? ""})`,
-      azul: `${f.azul ?? "—"} (${f.club_azul ?? ""})`,
-      modalidad: f.modalidad ?? "—",
+      hora: f.hora_estimada ? hora(f.hora_estimada) : "-",
+      area: f.area ?? "-",
+      roja: `${f.roja ?? "-"} (${f.club_roja ?? ""})`,
+      azul: `${f.azul ?? "-"} (${f.club_azul ?? ""})`,
+      modalidad: f.modalidad ?? "-",
       ganador:
-        f.gano === "roja" ? (f.roja ?? "—") : f.gano === "azul" ? (f.azul ?? "—") : "—",
+        f.gano === "roja" ? (f.roja ?? "-") : f.gano === "azul" ? (f.azul ?? "-") : "-",
       metodo: f.metodo ?? "",
     }));
   }

@@ -21,6 +21,7 @@ Correr en el SQL Editor de Supabase, en este orden exacto:
 | `supabase/migrations/20260101000009_libro_reclamaciones.sql` | Tabla `reclamo` (Libro de Reclamaciones Virtual, campos según la hoja oficial de INDECOPI incluido `consumidor_domicilio`; RLS: insert público, select/update solo `es_staff()`) + `organizacion.plan_vence_en` + `v_mis_academias` actualizada con esa columna. |
 | `supabase/migrations/20260101000010_plan_por_evento.sql` | `evento.plan_vence_en` — desbloqueo del plan "Por evento" ahora es por evento puntual (comprado desde `/api/pagos/evento`), no organización completa. El plan Academia sigue siendo por organización. |
 | `supabase/migrations/20260101000014_descuento_pago.sql` | `pago.descuento_tipo`/`descuento_valor` (monto fijo o porcentaje, puntual por pago) + `pago.monto_final` (columna generada, el descuento ya aplicado). Se agrega al aprobar el pago (dueño/admin), no al registrarlo. |
+| `supabase/migrations/20260101000015_auditoria_con_nombre.sql` | Política `perfil_companeros` (lee el perfil de cualquiera que comparta organización vía `miembro`, además de `perfil_propio`) + vista `v_auditoria` (join explícito `auditoria`+`perfil`, `security_invoker`) para que `/app/auditoria` muestre el nombre de quien hizo el cambio en vez del UUID crudo. |
 
 Opcional, después de las migraciones: `supabase/seed_kick1.sql` carga el evento real de ejemplo (47 clubes, 154 peleadores, 78 peleas — el torneo KICK1 Contender 2026).
 

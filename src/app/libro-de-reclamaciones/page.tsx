@@ -4,7 +4,7 @@ import { FooterLanding } from "@/components/footer-landing";
 import { FormularioReclamo } from "./formulario";
 
 export const metadata: Metadata = {
-  title: "Libro de Reclamaciones — sass-combate",
+  title: "Libro de Reclamaciones",
   description:
     "Presenta un reclamo o una queja sobre sass-combate, conforme a la normativa de protección al consumidor del Perú.",
 };

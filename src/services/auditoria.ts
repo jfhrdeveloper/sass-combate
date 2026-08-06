@@ -15,7 +15,29 @@ export interface EntradaAuditoria {
   antes: Record<string, unknown> | null;
   despues: Record<string, unknown> | null;
   usuario_id: string | null;
+  usuario_nombre: string | null;
+  usuario_email: string | null;
   creado_en: string;
+}
+
+/** Quien hizo el cambio, para mostrar en vez del UUID crudo de `usuario_id`. */
+export function nombreUsuarioAuditoria(e: EntradaAuditoria): string {
+  return e.usuario_nombre || e.usuario_email || "Sistema";
+}
+
+/** Texto legible para las columnas que más aparecen en `resultado` — el resto
+ *  cae al nombre de columna tal cual, mejor que nada pero no ideal. */
+const NOMBRE_CAMPO: Record<string, string> = {
+  ganador_id: "Ganador",
+  metodo: "Método",
+  metodo_victoria: "Método de victoria",
+  duracion_est_seg: "Duración estimada",
+  ronda: "Ronda",
+  observaciones: "Observaciones",
+};
+
+export function nombreCampoAuditoria(campo: string): string {
+  return NOMBRE_CAMPO[campo] ?? campo;
 }
 
 const DEMO: EntradaAuditoria[] = [
@@ -26,7 +48,9 @@ const DEMO: EntradaAuditoria[] = [
     accion: "update",
     antes: { ganador_id: "ins-17", metodo: "decision" },
     despues: { ganador_id: "ins-17", metodo: "rsc" },
-    usuario_id: "mesa@demo.com",
+    usuario_id: "demo-mesa",
+    usuario_nombre: "Mesa de control (demo)",
+    usuario_email: "mesa@demo.com",
     creado_en: new Date(Date.now() - 5 * 60_000).toISOString(),
   },
   {
@@ -36,7 +60,9 @@ const DEMO: EntradaAuditoria[] = [
     accion: "insert",
     antes: null,
     despues: { ganador_id: "ins-15", metodo: "decision" },
-    usuario_id: "mesa@demo.com",
+    usuario_id: "demo-mesa",
+    usuario_nombre: "Mesa de control (demo)",
+    usuario_email: "mesa@demo.com",
     creado_en: new Date(Date.now() - 40 * 60_000).toISOString(),
   },
   {
@@ -46,7 +72,9 @@ const DEMO: EntradaAuditoria[] = [
     accion: "insert",
     antes: null,
     despues: { ganador_id: "ins-11", metodo: "abandono" },
-    usuario_id: "mesa@demo.com",
+    usuario_id: "demo-mesa",
+    usuario_nombre: "Mesa de control (demo)",
+    usuario_email: "mesa@demo.com",
     creado_en: new Date(Date.now() - 90 * 60_000).toISOString(),
   },
 ];
@@ -56,8 +84,8 @@ export async function listarAuditoria(): Promise<EntradaAuditoria[]> {
 
   const supabase = await crearClienteServidor();
   const { data } = await supabase
-    .from("auditoria")
-    .select("id, tabla, registro_id, accion, antes, despues, usuario_id, creado_en")
+    .from("v_auditoria")
+    .select("id, tabla, registro_id, accion, antes, despues, usuario_id, usuario_nombre, usuario_email, creado_en")
     .order("creado_en", { ascending: false })
     .limit(200);
 
