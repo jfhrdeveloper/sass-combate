@@ -1,7 +1,10 @@
 import { cn } from "@/utils/cn";
 
+/** `h-full` para que todas las tarjetas de un mismo grid/fila queden a la
+ *  misma altura aunque su contenido varíe en largo (el grid ya estira la
+ *  celda; esto asegura que la tarjeta en sí llene esa celda). */
 export function Tarjeta({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("rounded-xl border border-borde bg-panel p-4", className)} {...props} />;
+  return <div className={cn("h-full rounded-xl border border-borde bg-panel p-4", className)} {...props} />;
 }
 
 export function TarjetaTitulo({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {

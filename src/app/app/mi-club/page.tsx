@@ -1,4 +1,5 @@
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
+import { Insignia } from "@/components/ui/badge";
 import { Paginador } from "@/components/ui/paginador";
 import { exigirAcademia } from "@/services/auth";
 import { listarEventos, obtenerInscripcionesClub, obtenerPrecioInscripcion } from "@/services/consultas";
@@ -57,15 +58,7 @@ export default async function PaginaMiClub({
                 {i.edad ?? "sin edad"} años · {kg(i.peso_pesaje)} · {i.nivel}
               </span>
             </span>
-            {i.estado === "pendiente" ? (
-              <span className="rounded-md bg-aviso-suave px-2 py-1 font-display text-xs font-semibold uppercase tracking-wide text-aviso-fuerte">
-                por pagar
-              </span>
-            ) : (
-              <span className="rounded-md bg-exito-suave px-2 py-1 font-display text-xs font-semibold uppercase tracking-wide text-exito-fuerte">
-                pagado
-              </span>
-            )}
+            <Insignia estado={i.estado === "pendiente" ? "por_pagar" : "pagado"} />
           </li>
         ))}
       </ul>

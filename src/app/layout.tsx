@@ -1,24 +1,30 @@
 import type { Metadata } from "next";
-import { Barlow_Condensed, Inter } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { RegistrarServiceWorker } from "@/components/registrar-sw";
 import { URL_BASE } from "@/lib/seo";
 
 /**
- * Condensada para títulos, botones y números (pesos, horas, marcador): es la
- * tipografía de tabla de posiciones/cartelera de pelea, no una elección genérica.
- * Inter para texto y datos densos (tablas de atletas y pagos), por legibilidad.
+ * Una sola familia (Poppins) cubre los dos roles que ya existían
+ * (`--font-display`/`--font-body`, usados en todo el proyecto vía
+ * `font-display`/`font-body` de Tailwind): la jerarquía entre título y
+ * cuerpo de texto ahora se marca con el grosor, no con dos tipografías
+ * distintas. Poppins no es una fuente variable (a diferencia de Inter, que
+ * se cargaba antes sin lista de grosores): cada grosor es un archivo
+ * estático aparte, así que se listan solo los que el proyecto ya usa (grep
+ * de `font-(normal|medium|semibold)` en todo `src/`), sin cargar peso de más.
  */
-const display = Barlow_Condensed({
+const display = Poppins({
   subsets: ["latin"],
   weight: ["500", "600", "700"],
   variable: "--font-display",
   display: "swap",
 });
 
-const body = Inter({
+const body = Poppins({
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
   variable: "--font-body",
   display: "swap",
 });

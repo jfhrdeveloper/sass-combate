@@ -94,7 +94,7 @@ export default async function PaginaEvento({
         </div>
       </header>
 
-      <section className="mt-6 grid gap-3 sm:grid-cols-4">
+      <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Tarjeta>
           <TarjetaTitulo>Inscritos</TarjetaTitulo>
           <TarjetaDato>{inscripciones.length}</TarjetaDato>
@@ -139,8 +139,8 @@ export default async function PaginaEvento({
             </p>
           </div>
 
-          <div className="mt-3 overflow-hidden rounded-xl border border-borde bg-panel">
-            <table className="w-full text-sm">
+          <div className="mt-3 overflow-x-auto rounded-xl border border-borde bg-panel">
+            <table className="w-full min-w-[640px] text-sm">
               <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500 dark:text-slate-400">
                 <tr>
                   <th className="px-3 py-2 font-medium">Hora</th>

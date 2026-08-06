@@ -67,7 +67,7 @@ export default function PaginaEmparejar() {
         El motor propone; el organizador decide. Ajusta las reglas y revisa los cruces.
       </p>
 
-      <section className="mt-6 grid gap-3 sm:grid-cols-4">
+      <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Tarjeta>
           <TarjetaTitulo>Inscritos</TarjetaTitulo>
           <TarjetaDato>{INSCRIPCIONES_DEMO.length}</TarjetaDato>

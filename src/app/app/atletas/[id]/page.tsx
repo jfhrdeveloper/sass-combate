@@ -29,7 +29,7 @@ export default async function PaginaAtleta({
         {atleta.nacimiento ? ` · nacido el ${fechaLarga(atleta.nacimiento)}` : ""}
       </p>
 
-      <section className="mt-6 grid gap-3 sm:grid-cols-4">
+      <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Tarjeta>
           <TarjetaTitulo>Récord</TarjetaTitulo>
           <TarjetaDato>

@@ -19,6 +19,15 @@ const colores: Record<string, string> = {
   empate: "bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300",
   exhibicion: "bg-info-suave text-info-fuerte",
   no_disputada: "bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-400",
+  // Estado de un pago (pago.estado), distinto de los de arriba.
+  en_revision: "bg-aviso-suave text-aviso-fuerte",
+  aprobado: "bg-exito-suave text-exito-fuerte",
+  rechazado: "bg-error-suave text-error-fuerte",
+  // Estado de una inscripción vista desde Mi Club: "pendiente" ya existe
+  // arriba como color neutro (pelea/evento), pero acá el pago vencido sí
+  // necesita el tono de aviso, no neutro — por eso una clave propia.
+  por_pagar: "bg-aviso-suave text-aviso-fuerte",
+  pagado: "bg-exito-suave text-exito-fuerte",
 };
 
 export function Insignia({ estado, className }: { estado: string; className?: string }) {

@@ -1,16 +1,11 @@
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
+import { Insignia } from "@/components/ui/badge";
 import { Paginador } from "@/components/ui/paginador";
 import { exigirAcademia } from "@/services/auth";
 import { listarPagos, montoFinal } from "@/services/pagos";
 import { paginar } from "@/lib/paginacion";
 import { RevisarPago } from "./revisar";
 import { fechaLarga } from "@/utils/format";
-
-const COLOR: Record<string, string> = {
-  en_revision: "bg-aviso-suave text-aviso-fuerte",
-  aprobado: "bg-exito-suave text-exito-fuerte",
-  rechazado: "bg-error-suave text-error-fuerte",
-};
 
 export default async function PaginaPagos({
   searchParams,
@@ -86,11 +81,7 @@ export default async function PaginaPagos({
                   )}
                 </p>
               </div>
-              <span
-                className={`rounded-md px-2 py-1 font-display text-xs font-semibold uppercase tracking-wide ${COLOR[p.estado]}`}
-              >
-                {p.estado.replace("_", " ")}
-              </span>
+              <Insignia estado={p.estado} />
             </div>
 
             {p.motivo_rechazo && (

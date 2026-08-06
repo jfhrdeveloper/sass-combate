@@ -11,7 +11,7 @@
 - [ ] Desplegar a Vercel (o el hosting elegido) y configurar dominio con soporte de subdominios por academia.
 
 ## Pendientes activos
-- [ ] **Auditoría grande de interfaz/backend pedida el 2026-08-06** (ver esa entrada de bitácora): el usuario pidió implementar las 7 fases de una vez. Fases 1 y 2 cerradas (ver bitácora de hoy). Quedan las fases 3 a 7 (consistencia visual + Poppins, paginación 4 mobile/8 desktop, CRUD completo de categorías/equipo/atletas, backend robusto para 300 espectadores, animaciones + skeleton).
+- [ ] **Auditoría grande de interfaz/backend pedida el 2026-08-06** (ver esa entrada de bitácora): el usuario pidió implementar las 7 fases de una vez. Fases 1, 2 y 3 cerradas (ver bitácora de hoy). Quedan las fases 4 a 7 (paginación 4 mobile/8 desktop, CRUD completo de categorías/equipo/atletas, backend robusto para 300 espectadores, animaciones + skeleton).
 - [x] Extender la inscripción desde el panel para pasar por la cola offline (hoy va directo contra el servidor; solo resultados, pesaje y asistencia usan la cola).
 - [x] Formalizar tokens de color para estados (éxito/aviso/error/info) en `tailwind.config.ts` — hoy se usan utilidades sueltas.
 - [x] Conectar `/p/[token]` y `/e/[org]/[evento]` a datos reales de Supabase — ver bitácora de hoy (`src/lib/publico.ts`).
@@ -25,6 +25,19 @@
 - [ ] **No existe ninguna UI para crear/editar áreas de un evento** (ring/tatami/jaula, con sus modalidades y hora de inicio) — hoy `AREAS_DEMO` es el único ejemplo que existe; en producción real habría que insertarlas a mano en Supabase. Descubierto el 2026-08-04 al ampliar el catálogo de modalidades (ver esa entrada); no se construyó, es alcance separado y bastante grande (una pantalla de gestión completa).
 - [ ] `mesa/[eventoId]/page.tsx` sigue usando `CATEGORIAS_DEMO`/`PELEAS_DEMO`/`AREAS_DEMO` fijos (mismo gap de siempre, ver el pendiente de arriba) — el chip de categoría de peso que se agregó el 2026-08-04 hereda esa misma limitación: en real necesitaría `listarCategorias` server-side igual que `eventos/[id]/page.tsx`.
 - [x] Descuento al aprobar un pago de inscripción — ver bitácora de hoy (`pago.descuento_tipo`/`descuento_valor`, `RevisarPago`).
+
+### 2026-08-06 (5) — Auditoría grande: Fase 3 (badges, grids, tablas, Poppins)
+- **Qué cambió:**
+  - **Badges unificados bajo `Insignia`:** `mi-club/page.tsx` (chips "por pagar"/"pagado" armados a mano con `py-1`) y `pagos/page.tsx` (un `COLOR` map duplicado casi idéntico al de `Insignia`) pasaron a usar `<Insignia estado={...} />`. `badge.tsx` ganó 5 claves nuevas: `en_revision`/`aprobado`/`rechazado` (estado de pago) y `por_pagar`/`pagado` (estado de inscripción visto desde Mi Club, con su propio color de aviso en vez de reusar el `pendiente` neutro que ya significaba otra cosa). De paso, `Tarjeta` (`card.tsx`) ganó `h-full` para que las tarjetas de un mismo grid queden a la misma altura si su contenido varía en largo.
+  - **4 grids que saltaban de 1 a 4 columnas** (`admin/page.tsx`, `atletas/[id]/page.tsx`, `emparejar/page.tsx`, `eventos/[id]/page.tsx`) pasaron a `grid-cols-2 sm:grid-cols-4` (2 columnas en mobile, como pidió el usuario), copiando el patrón que `mesa/[eventoId]/page.tsx` ya tenía bien.
+  - **3 tablas con `overflow-hidden` que recortaban contenido en mobile** (`admin/page.tsx`, `eventos/[id]/page.tsx`, `mi-club/cargar.tsx`) pasaron a `overflow-x-auto` con `min-w-[...]` explícito en la `<table>`, para que el scroll quede contenido en el wrapper (nunca en el body de la página) en vez de aplastar las columnas.
+  - **Tipografía a Poppins:** reemplaza Barlow Condensed + Inter en `layout.tsx`. Se mantuvo el mismo esquema de dos roles ya existente (`--font-display`/`--font-body`, usados en todo el proyecto vía `font-display`/`font-body` de Tailwind) para no tocar ningún componente: ahora ambos roles cargan Poppins, con grosores distintos (`display` 500/600/700, `body` 400/500/600) marcando la jerarquía en vez de dos tipografías separadas. Poppins no es una fuente variable en Google Fonts (a diferencia de Inter, que se cargaba sin lista de grosores), así que se listaron solo los grosores que el proyecto ya usa (confirmado con grep de `font-(normal|medium|semibold)` en todo `src/`, no hay ningún `font-bold` ni más pesado en ningún lado hoy).
+  - Documentado en `style-guide.md`: tipografía, regla de grids (nunca saltar de 1 a más de 2 columnas), regla de tablas anchas (`overflow-x-auto`, nunca `overflow-hidden`), y los estados nuevos de `Insignia`.
+  - `npm run typecheck`, `npm run lint`, `npm test` (60 pruebas) y `npm run build` pasan (Poppins se descarga y compila bien en el build). Verificado que la respuesta del servidor de desarrollo referencia los archivos de Poppins compilados.
+- **Por qué:** pedido explícito del usuario, Fase 3 del plan de 7.
+- **Pendiente / riesgos conocidos:**
+  - No se verificó visualmente en un navegador real cómo se ve Poppins junto a los números `tabular-nums` de los marcadores (Barlow Condensed era más angosta) — vale la pena una revisión visual cuando haya oportunidad, aunque no bloquea nada funcionalmente.
+  - Siguen las fases 4 a 7.
 
 ### 2026-08-06 (4) — Auditoría grande: Fase 2 (Select/Dialog propios, sin flechas nativas)
 - **Qué cambió:** el usuario pidió implementar las 7 fases del plan de una vez, sin esperar confirmación fase por fase. Para el punto pendiente (alcance de shadcn), se siguió la interpretación propuesta y no corregida por el usuario: shadcn conviviendo con el sistema propio, solo para lo que faltaba.
