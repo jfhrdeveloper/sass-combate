@@ -1,5 +1,6 @@
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { HAY_SUPABASE } from "@/lib/datos";
+import { aplicarDescuento, type TipoDescuento } from "@/lib/descuentos";
 
 export interface Pago {
   id: string;
@@ -10,7 +11,15 @@ export interface Pago {
   comprobante_url: string | null;
   estado: "en_revision" | "aprobado" | "rechazado";
   motivo_rechazo: string | null;
+  descuento_tipo: TipoDescuento | null;
+  descuento_valor: number | null;
   creado_en: string;
+}
+
+/** Monto que realmente se cobra tras el descuento, si tiene uno. */
+export function montoFinal(pago: Pago): number {
+  if (!pago.descuento_tipo || pago.descuento_valor === null) return pago.monto;
+  return aplicarDescuento(pago.monto, { tipo: pago.descuento_tipo, valor: pago.descuento_valor });
 }
 
 const DEMO: Pago[] = [
@@ -23,6 +32,8 @@ const DEMO: Pago[] = [
     comprobante_url: null,
     estado: "en_revision",
     motivo_rechazo: null,
+    descuento_tipo: null,
+    descuento_valor: null,
     creado_en: new Date().toISOString(),
   },
   {
@@ -34,6 +45,8 @@ const DEMO: Pago[] = [
     comprobante_url: null,
     estado: "aprobado",
     motivo_rechazo: null,
+    descuento_tipo: "porcentaje",
+    descuento_valor: 10,
     creado_en: new Date(Date.now() - 86400000).toISOString(),
   },
   {
@@ -45,6 +58,8 @@ const DEMO: Pago[] = [
     comprobante_url: null,
     estado: "rechazado",
     motivo_rechazo: "La captura no coincide con el monto declarado.",
+    descuento_tipo: null,
+    descuento_valor: null,
     creado_en: new Date(Date.now() - 2 * 86400000).toISOString(),
   },
   {
@@ -56,6 +71,8 @@ const DEMO: Pago[] = [
     comprobante_url: null,
     estado: "en_revision",
     motivo_rechazo: null,
+    descuento_tipo: null,
+    descuento_valor: null,
     creado_en: new Date(Date.now() - 3 * 86400000).toISOString(),
   },
   {
@@ -67,6 +84,8 @@ const DEMO: Pago[] = [
     comprobante_url: null,
     estado: "aprobado",
     motivo_rechazo: null,
+    descuento_tipo: null,
+    descuento_valor: null,
     creado_en: new Date(Date.now() - 4 * 86400000).toISOString(),
   },
   {
@@ -78,6 +97,8 @@ const DEMO: Pago[] = [
     comprobante_url: null,
     estado: "en_revision",
     motivo_rechazo: null,
+    descuento_tipo: null,
+    descuento_valor: null,
     creado_en: new Date(Date.now() - 5 * 86400000).toISOString(),
   },
   {
@@ -89,6 +110,8 @@ const DEMO: Pago[] = [
     comprobante_url: null,
     estado: "aprobado",
     motivo_rechazo: null,
+    descuento_tipo: "monto",
+    descuento_valor: 15,
     creado_en: new Date(Date.now() - 6 * 86400000).toISOString(),
   },
   {
@@ -100,6 +123,8 @@ const DEMO: Pago[] = [
     comprobante_url: null,
     estado: "en_revision",
     motivo_rechazo: null,
+    descuento_tipo: null,
+    descuento_valor: null,
     creado_en: new Date(Date.now() - 7 * 86400000).toISOString(),
   },
   {
@@ -111,6 +136,8 @@ const DEMO: Pago[] = [
     comprobante_url: null,
     estado: "rechazado",
     motivo_rechazo: "No se registró ese número de operación.",
+    descuento_tipo: null,
+    descuento_valor: null,
     creado_en: new Date(Date.now() - 8 * 86400000).toISOString(),
   },
 ];
@@ -150,6 +177,8 @@ const DEMO_GENERADOS: Pago[] = Array.from({ length: 35 }, (_, i) => {
     comprobante_url: null,
     estado,
     motivo_rechazo: estado === "rechazado" ? "La captura no coincide con el monto declarado." : null,
+    descuento_tipo: null,
+    descuento_valor: null,
     creado_en: new Date(Date.now() - Math.floor(rand() * 20) * 86400000).toISOString(),
   };
 });
@@ -182,7 +211,7 @@ export function resumenIngresos7Dias(pagos: Pago[]): PuntoIngreso[] {
     if (pago.estado !== "aprobado") continue;
     const clave = pago.creado_en.slice(0, 10);
     const punto = porFecha.get(clave);
-    if (punto) punto.monto += pago.monto;
+    if (punto) punto.monto += montoFinal(pago);
   }
 
   return dias;
@@ -194,7 +223,9 @@ export async function listarPagos(): Promise<Pago[]> {
   const supabase = await crearClienteServidor();
   const { data } = await supabase
     .from("pago")
-    .select("id, metodo, monto, referencia, comprobante_url, estado, motivo_rechazo, creado_en, club:club_id (nombre)")
+    .select(
+      "id, metodo, monto, referencia, comprobante_url, estado, motivo_rechazo, descuento_tipo, descuento_valor, creado_en, club:club_id (nombre)"
+    )
     .order("creado_en", { ascending: false });
 
   type Fila = Omit<Pago, "club"> & { club: { nombre: string } | null };

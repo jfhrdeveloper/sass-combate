@@ -79,20 +79,30 @@ export async function registrarPago(
   return { ok: "Comprobante enviado. El organizador lo va a revisar." };
 }
 
+const esquemaRevision = z
+  .object({
+    pagoId: z.string().min(1),
+    decision: z.enum(["aprobado", "rechazado"]),
+    motivo: z.string().optional(),
+    descuentoTipo: z.enum(["monto", "porcentaje", ""]).optional(),
+    descuentoValor: z.coerce.number().min(0).optional().or(z.literal("")),
+  })
+  .refine((d) => !(d.descuentoTipo === "porcentaje" && Number(d.descuentoValor) > 100), {
+    message: "El descuento no puede pasar de 100%",
+    path: ["descuentoValor"],
+  });
+
 export async function revisarPago(
   _prev: EstadoFormulario,
   datos: FormData
 ): Promise<EstadoFormulario> {
-  const parsed = z
-    .object({
-      pagoId: z.string().min(1),
-      decision: z.enum(["aprobado", "rechazado"]),
-      motivo: z.string().optional(),
-    })
-    .safeParse(Object.fromEntries(datos));
+  const parsed = esquemaRevision.safeParse(Object.fromEntries(datos));
 
-  if (!parsed.success) return { error: "Datos incompletos" };
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos incompletos" };
   if (!HAY_SUPABASE) return { ok: "En modo demo no se revisa." };
+
+  const { descuentoTipo, descuentoValor } = parsed.data;
+  const hayDescuento = !!descuentoTipo && descuentoValor !== undefined && descuentoValor !== "";
 
   const supabase = await crearClienteServidor();
   const {
@@ -104,6 +114,8 @@ export async function revisarPago(
     .update({
       estado: parsed.data.decision,
       motivo_rechazo: parsed.data.decision === "rechazado" ? parsed.data.motivo : null,
+      descuento_tipo: hayDescuento ? descuentoTipo : null,
+      descuento_valor: hayDescuento ? Number(descuentoValor) : null,
       revisado_por: user?.id ?? null,
       revisado_en: new Date().toISOString(),
     })

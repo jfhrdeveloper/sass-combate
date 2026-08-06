@@ -1,7 +1,7 @@
 import { Tarjeta, TarjetaDato, TarjetaTitulo } from "@/components/ui/card";
 import { Paginador } from "@/components/ui/paginador";
 import { exigirAcademia } from "@/services/auth";
-import { listarPagos } from "@/services/pagos";
+import { listarPagos, montoFinal } from "@/services/pagos";
 import { paginar } from "@/lib/paginacion";
 import { RevisarPago } from "./revisar";
 import { fechaLarga } from "@/utils/format";
@@ -26,7 +26,7 @@ export default async function PaginaPagos({
   const pendientes = todos.filter((p) => p.estado === "en_revision");
   const recaudado = todos
     .filter((p) => p.estado === "aprobado")
-    .reduce((s, p) => s + Number(p.monto), 0);
+    .reduce((s, p) => s + montoFinal(p), 0);
 
   return (
     <main className="mx-auto max-w-3xl p-6">
@@ -59,12 +59,31 @@ export default async function PaginaPagos({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="font-medium">
-                  {p.club ?? "Sin club"} · S/ {Number(p.monto).toFixed(2)}
+                  {p.club ?? "Sin club"} ·{" "}
+                  {p.descuento_tipo ? (
+                    <>
+                      <span className="text-slate-400 line-through dark:text-slate-500">
+                        S/ {Number(p.monto).toFixed(2)}
+                      </span>{" "}
+                      S/ {montoFinal(p).toFixed(2)}
+                    </>
+                  ) : (
+                    <>S/ {Number(p.monto).toFixed(2)}</>
+                  )}
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   {p.metodo}
                   {p.referencia ? ` · operación ${p.referencia}` : ""} ·{" "}
                   {fechaLarga(p.creado_en)}
+                  {p.descuento_tipo && (
+                    <>
+                      {" "}
+                      · descuento{" "}
+                      {p.descuento_tipo === "porcentaje"
+                        ? `${p.descuento_valor}%`
+                        : `S/ ${p.descuento_valor?.toFixed(2)}`}
+                    </>
+                  )}
                 </p>
               </div>
               <span
@@ -81,7 +100,7 @@ export default async function PaginaPagos({
             )}
 
             {p.estado === "en_revision" && ["dueno", "admin"].includes(academia.rol) && (
-              <RevisarPago pagoId={p.id} />
+              <RevisarPago pagoId={p.id} monto={Number(p.monto)} />
             )}
           </li>
         ))}
