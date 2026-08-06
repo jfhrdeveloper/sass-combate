@@ -5,6 +5,7 @@ import { revisarPago, type EstadoFormulario } from "@/actions/pagos";
 import { Aviso } from "@/components/ui/formulario";
 import { Boton } from "@/components/ui/button";
 import { Campo } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { aplicarDescuento, type TipoDescuento } from "@/lib/descuentos";
 
 export function RevisarPago({ pagoId, monto }: { pagoId: string; monto: number }) {
@@ -39,15 +40,15 @@ export function RevisarPago({ pagoId, monto }: { pagoId: string; monto: number }
 
           {conDescuento && (
             <div className="mt-2 grid grid-cols-2 gap-2">
-              <select
-                name="descuentoTipo"
-                value={tipo}
-                onChange={(e) => setTipo(e.target.value as TipoDescuento)}
-                className="h-10 rounded-lg border border-borde bg-panel px-3 text-sm"
-              >
-                <option value="monto">S/ (monto fijo)</option>
-                <option value="porcentaje">% (porcentaje)</option>
-              </select>
+              <Select name="descuentoTipo" value={tipo} onValueChange={(v) => setTipo(v as TipoDescuento)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monto">S/ (monto fijo)</SelectItem>
+                  <SelectItem value="porcentaje">% (porcentaje)</SelectItem>
+                </SelectContent>
+              </Select>
               <input
                 type="number"
                 name="descuentoValor"

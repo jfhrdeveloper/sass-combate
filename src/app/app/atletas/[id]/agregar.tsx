@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { registrarPeleaExterna, type EstadoFormulario } from "@/actions/atletas";
 import { Aviso, BotonEnvio } from "@/components/ui/formulario";
 import { Campo } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 /**
  * Carga a mano una pelea que el atleta hizo fuera de la plataforma.
@@ -42,16 +43,17 @@ export function AgregarPeleaExterna({ atletaId }: { atletaId: string }) {
         </label>
         <label className="grid gap-1 text-sm">
           <span className="text-slate-600 dark:text-slate-400">Resultado</span>
-          <select
-            name="resultado"
-            className="h-10 rounded-lg border border-borde bg-panel px-3 text-sm"
-            defaultValue="victoria"
-          >
-            <option value="victoria">Victoria</option>
-            <option value="derrota">Derrota</option>
-            <option value="empate">Empate</option>
-            <option value="exhibicion">Exhibición</option>
-          </select>
+          <Select name="resultado" defaultValue="victoria">
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="victoria">Victoria</SelectItem>
+              <SelectItem value="derrota">Derrota</SelectItem>
+              <SelectItem value="empate">Empate</SelectItem>
+              <SelectItem value="exhibicion">Exhibición</SelectItem>
+            </SelectContent>
+          </Select>
         </label>
         <label className="grid gap-1 text-sm">
           <span className="text-slate-600 dark:text-slate-400">Método</span>

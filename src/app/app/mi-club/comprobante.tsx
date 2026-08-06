@@ -5,6 +5,7 @@ import { registrarPago, type EstadoFormulario } from "@/actions/pagos";
 import { Aviso, BotonEnvio } from "@/components/ui/formulario";
 import { Campo } from "@/components/ui/input";
 import { prepararImagen, ImagenInvalidaError } from "@/utils/imagen";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const METODOS = [
   ["yape", "Yape"],
@@ -67,17 +68,18 @@ export function SubirComprobante({
       <div className="mt-4 grid gap-3">
         <label className="grid gap-1 text-sm">
           <span className="text-slate-600 dark:text-slate-400">Método</span>
-          <select
-            value={metodo}
-            onChange={(e) => setMetodo(e.target.value)}
-            className="h-10 rounded-lg border border-borde bg-panel px-3 text-sm"
-          >
-            {METODOS.map(([v, t]) => (
-              <option key={v} value={v}>
-                {t}
-              </option>
-            ))}
-          </select>
+          <Select value={metodo} onValueChange={setMetodo}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {METODOS.map(([v, t]) => (
+                <SelectItem key={v} value={v}>
+                  {t}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </label>
 
         <form action={accion} className="grid gap-3">

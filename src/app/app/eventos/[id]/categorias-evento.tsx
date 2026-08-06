@@ -5,6 +5,7 @@ import { crearCategoria, eliminarCategoria, type EstadoFormulario } from "@/acti
 import { Aviso, BotonEnvio } from "@/components/ui/formulario";
 import { Campo } from "@/components/ui/input";
 import { Boton } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NOMBRE_MODALIDAD, type CategoriaPeso, type ModalidadCodigo } from "@/types";
 
 const MODALIDADES = Object.entries(NOMBRE_MODALIDAD) as [ModalidadCodigo, string][];
@@ -82,21 +83,18 @@ export function CategoriasEvento({
         </label>
         <label className="grid gap-1 text-sm">
           <span className="text-slate-600 dark:text-slate-400">Modalidad</span>
-          <select
-            name="modalidad"
-            required
-            defaultValue=""
-            className="h-10 rounded-lg border border-borde bg-panel px-3 text-sm"
-          >
-            <option value="" disabled>
-              Elige una modalidad
-            </option>
-            {MODALIDADES.map(([codigo, nombre]) => (
-              <option key={codigo} value={codigo}>
-                {nombre}
-              </option>
-            ))}
-          </select>
+          <Select name="modalidad" required>
+            <SelectTrigger>
+              <SelectValue placeholder="Elige una modalidad" />
+            </SelectTrigger>
+            <SelectContent>
+              {MODALIDADES.map(([codigo, nombre]) => (
+                <SelectItem key={codigo} value={codigo}>
+                  {nombre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </label>
         <label className="grid gap-1 text-sm">
           <span className="text-slate-600 dark:text-slate-400">Peso mínimo (kg)</span>
@@ -108,15 +106,16 @@ export function CategoriasEvento({
         </label>
         <label className="grid gap-1 text-sm sm:col-span-2">
           <span className="text-slate-600 dark:text-slate-400">Sexo (opcional)</span>
-          <select
-            name="sexo"
-            defaultValue=""
-            className="h-10 rounded-lg border border-borde bg-panel px-3 text-sm"
-          >
-            <option value="">Cualquiera</option>
-            <option value="M">Varones</option>
-            <option value="F">Mujeres</option>
-          </select>
+          <Select name="sexo" defaultValue="todos">
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Cualquiera</SelectItem>
+              <SelectItem value="M">Varones</SelectItem>
+              <SelectItem value="F">Mujeres</SelectItem>
+            </SelectContent>
+          </Select>
         </label>
         <div className="sm:col-span-2">
           <Aviso error={estado.error} ok={estado.ok} />

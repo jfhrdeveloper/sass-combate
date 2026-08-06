@@ -4,8 +4,7 @@ import { useActionState, useState } from "react";
 import { enviarReclamo, type EstadoFormulario } from "@/actions/reclamos";
 import { Aviso, BotonEnvio } from "@/components/ui/formulario";
 import { Campo, AreaTexto } from "@/components/ui/input";
-
-const campo = "h-10 w-full rounded-lg border border-borde bg-panel px-3 text-sm";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function FormularioReclamo() {
   const [estado, accion] = useActionState<EstadoFormulario, FormData>(enviarReclamo, {});
@@ -55,11 +54,16 @@ export function FormularioReclamo() {
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="grid gap-1 text-sm">
             <span className="text-slate-600 dark:text-slate-300">Tipo de documento</span>
-            <select name="documentoTipo" defaultValue="dni" className={campo}>
-              <option value="dni">DNI</option>
-              <option value="ce">Carné de extranjería</option>
-              <option value="pasaporte">Pasaporte</option>
-            </select>
+            <Select name="documentoTipo" defaultValue="dni">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="dni">DNI</SelectItem>
+                <SelectItem value="ce">Carné de extranjería</SelectItem>
+                <SelectItem value="pasaporte">Pasaporte</SelectItem>
+              </SelectContent>
+            </Select>
           </label>
           <label className="grid gap-1 text-sm">
             <span className="text-slate-600 dark:text-slate-300">Número de documento</span>

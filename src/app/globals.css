@@ -66,6 +66,19 @@ body {
   font-family: var(--font-body), sans-serif;
 }
 
+/* Regla del proyecto: ningún input numérico muestra las flechas de
+   incremento nativas del navegador. Donde el valor lo permite, se prefiere
+   `inputMode="decimal"` sobre texto (ver pesaje/page.tsx) en vez de
+   `type="number"`; esta regla cubre los casos donde sí hace falta. */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 h1,
 h2,
 h3 {
@@ -91,7 +104,11 @@ h3 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-fade-in-up {
+  .animate-fade-in-up,
+  .animate-overlay-in,
+  .animate-overlay-out,
+  .animate-dialog-in,
+  .animate-dialog-out {
     animation-duration: 0.01ms;
   }
 }

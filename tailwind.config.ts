@@ -39,6 +39,24 @@ export default {
           fuerte: "hsl(var(--info-fuerte) / <alpha-value>)",
         },
       },
+      keyframes: {
+        "overlay-in": { from: { opacity: "0" }, to: { opacity: "1" } },
+        "overlay-out": { from: { opacity: "1" }, to: { opacity: "0" } },
+        "dialog-in": {
+          from: { opacity: "0", transform: "translate(-50%, -50%) scale(0.96)" },
+          to: { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
+        },
+        "dialog-out": {
+          from: { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
+          to: { opacity: "0", transform: "translate(-50%, -50%) scale(0.96)" },
+        },
+      },
+      animation: {
+        "overlay-in": "overlay-in 150ms ease-out",
+        "overlay-out": "overlay-out 150ms ease-in",
+        "dialog-in": "dialog-in 150ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "dialog-out": "dialog-out 120ms ease-in",
+      },
     },
   },
   plugins: [],

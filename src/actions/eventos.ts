@@ -115,7 +115,7 @@ export async function crearCategoria(
     eventoId: datos.get("eventoId"),
     nombre: datos.get("nombre"),
     modalidad: datos.get("modalidad"),
-    sexo: datos.get("sexo") || undefined,
+    sexo: datos.get("sexo") === "todos" ? undefined : datos.get("sexo") || undefined,
     pesoMin: datos.get("pesoMin") || undefined,
     pesoMax: datos.get("pesoMax") || undefined,
   });

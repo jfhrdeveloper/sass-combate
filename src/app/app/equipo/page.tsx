@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { invitarMiembro, type EstadoFormulario } from "@/actions/academia";
 import { Aviso, BotonEnvio } from "@/components/ui/formulario";
 import { Campo } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NOMBRE_ROL, type Rol } from "@/config/roles";
 
 const ROLES: Array<[Rol, string]> = [
@@ -31,17 +32,18 @@ export default function PaginaEquipo() {
         </label>
         <label className="grid gap-1 text-sm">
           <span className="text-slate-600 dark:text-slate-400">Rol</span>
-          <select
-            name="rol"
-            defaultValue="mesa"
-            className="h-10 rounded-lg border border-borde bg-panel px-3 text-sm"
-          >
-            {ROLES.map(([valor, desc]) => (
-              <option key={valor} value={valor}>
-                {NOMBRE_ROL[valor]}: {desc}
-              </option>
-            ))}
-          </select>
+          <Select name="rol" defaultValue="mesa">
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ROLES.map(([valor, desc]) => (
+                <SelectItem key={valor} value={valor}>
+                  {NOMBRE_ROL[valor]}: {desc}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </label>
         <Aviso error={estado.error} ok={estado.ok} />
         <BotonEnvio>Invitar</BotonEnvio>
